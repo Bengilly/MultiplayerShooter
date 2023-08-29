@@ -31,10 +31,6 @@ ASRollingDrone::ASRollingDrone()
 	HealthComponent = CreateDefaultSubobject<USHealthComponent>(TEXT("HealthComponent"));
 	HealthComponent->OnHealthChanged.AddDynamic(this, &ASRollingDrone::HandleTakeDamage);
 
-	//audio comp
-	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
-	AudioComponent->SetupAttachment(MeshComponent);
-
 	//sphere comp
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	SphereComponent->SetSphereRadius(300);
@@ -59,18 +55,13 @@ void ASRollingDrone::BeginPlay()
 	//find first point on path
 	NextPointLocation = GetNextPoint();
 
-	AudioComponent = UGameplayStatics::SpawnSoundAttached(ChaseSound, RootComponent);
+	RollingSound = UGameplayStatics::SpawnSoundAttached(ChaseSound, RootComponent);
 }
 
 // Called every frame
 void ASRollingDrone::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	float MovementVelocity = GetVelocity().Size();
-	float VelocityVolume = FMath::GetMappedRangeValueClamped(FVector2D(10, 1000), FVector2D(0.1, 2), MovementVelocity);
-	AudioComponent->SetVolumeMultiplier(VelocityVolume);
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("FloatVariable = %f"), VelocityVolume));
 
 	float DistanceToTargetLocation = (GetActorLocation() - NextPointLocation).Size();
 
@@ -152,7 +143,7 @@ void ASRollingDrone::Explode()
 
 	DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 12, FColor::Red, false, 4.0f, 1.0f);
 
-	AudioComponent->Stop();
+	RollingSound->Stop();
 	Destroy();
 }
 

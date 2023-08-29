@@ -61,13 +61,10 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, Category = "Components")
 	USphereComponent* SphereComponent;
 
-	UPROPERTY(VisibleDefaultsOnly, Category = "Components")
-	UAudioComponent* AudioComponent;
-
 	//pulse material on take damage
 	UMaterialInstanceDynamic* DroneMaterialInstance;
 
-
+	UAudioComponent* RollingSound;
 
 
 	//  ------------ Functions ------------  //
