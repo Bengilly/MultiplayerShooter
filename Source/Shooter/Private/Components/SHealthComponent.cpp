@@ -46,8 +46,16 @@ void USHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, 
 }
 
 
+
+
 //  ------------ Multiplayer Functions ------------  //
 
+//run on client
+void USHealthComponent::OnRep_Health(float PreviousHealth)
+{
+	float Damage = CurrentHealth - PreviousHealth;
+	OnHealthChanged.Broadcast(this, CurrentHealth, Damage, nullptr, nullptr, nullptr);
+}
 
 void USHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {

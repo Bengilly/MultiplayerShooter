@@ -28,7 +28,10 @@ protected:
 	UFUNCTION()
 	void HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
 
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "HealthComponent")
+	UFUNCTION()
+	void OnRep_Health(float PreviousHealth); //can pass in old value when using replicatedusing
+
+	UPROPERTY(ReplicatedUsing=OnRep_Health, BlueprintReadOnly, Category = "HealthComponent")
 	float CurrentHealth;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HealthComponent");

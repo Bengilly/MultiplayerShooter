@@ -57,7 +57,12 @@ void ASRollingDrone::BeginPlay()
 	Super::BeginPlay();
 
 	//find first point on path
-	NextPointLocation = GetNextPoint();
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		NextPointLocation = GetNextPoint();
+	}
+
 
 	AudioComponent = UGameplayStatics::SpawnSoundAttached(ChaseSound, RootComponent);
 }
@@ -67,31 +72,34 @@ void ASRollingDrone::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	float MovementVelocity = GetVelocity().Size();
-	float VelocityVolume = FMath::GetMappedRangeValueClamped(FVector2D(10, 1000), FVector2D(0.1, 2), MovementVelocity);
-	AudioComponent->SetVolumeMultiplier(VelocityVolume);
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("FloatVariable = %f"), VelocityVolume));
 
-	float DistanceToTargetLocation = (GetActorLocation() - NextPointLocation).Size();
+		float MovementVelocity = GetVelocity().Size();
+		float VelocityVolume = FMath::GetMappedRangeValueClamped(FVector2D(10, 1000), FVector2D(0.1, 2), MovementVelocity);
+		AudioComponent->SetVolumeMultiplier(VelocityVolume);
 
-	//get next path point if close to the player, keep adding force if not
-	if (DistanceToTargetLocation <= RequiredDistanceToTargetLocation)
+	if (GetLocalRole() == ROLE_Authority && !bHasExploded)
 	{
-		NextPointLocation = GetNextPoint();
-		DrawDebugString(GetWorld(), GetActorLocation(), "Target Reached");
+		float DistanceToTargetLocation = (GetActorLocation() - NextPointLocation).Size();
+
+		//get next path point if close to the player, keep adding force if not
+		if (DistanceToTargetLocation <= RequiredDistanceToTargetLocation)
+		{
+			NextPointLocation = GetNextPoint();
+			DrawDebugString(GetWorld(), GetActorLocation(), "Target Reached");
+		}
+		else
+		{
+			FVector ForceDirection = NextPointLocation - GetActorLocation();
+			ForceDirection.Normalize();
+			ForceDirection *= MovementForce;
+
+			MeshComponent->AddForce(ForceDirection, NAME_None, bAccelerationChange);
+
+			DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + ForceDirection, 32, FColor::Yellow, false, 0.0f, 0, 1.0f);
+		}
+
+		DrawDebugSphere(GetWorld(), NextPointLocation, 20, 12, FColor::Yellow, false, 4.0f, 1.0f);
 	}
-	else
-	{
-		FVector ForceDirection = NextPointLocation - GetActorLocation();
-		ForceDirection.Normalize();
-		ForceDirection *= MovementForce;
-
-		MeshComponent->AddForce(ForceDirection, NAME_None, bAccelerationChange);
-
-		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + ForceDirection, 32, FColor::Yellow, false, 0.0f, 0, 1.0f);
-	}
-
-	DrawDebugSphere(GetWorld(), NextPointLocation, 20, 12, FColor::Yellow, false, 4.0f, 1.0f);
 
 }
 
@@ -101,19 +109,24 @@ FVector ASRollingDrone::GetNextPoint()
 	ACharacter* PlayerPawn = UGameplayStatics::GetPlayerCharacter(this, 0);
 	UNavigationPath* NavigationPath = UNavigationSystemV1::FindPathToActorSynchronously(this, GetActorLocation(), PlayerPawn);
 
+	if (NavigationPath == nullptr)
+	{
+
+	}
 	//path[0] = actor location - so I want to get the next path value in the array
-	if (NavigationPath->PathPoints.Num() > 1)
+	else if (NavigationPath->PathPoints.Num() > 1)
 	{
 		return NavigationPath->PathPoints[1];
 	}
+
+
+
 	//can't find path
 	return GetActorLocation();
 }
 
 void ASRollingDrone::HandleTakeDamage(USHealthComponent* DroneHealthComp, float Health, float HealthDelta, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
-
-
 	if (DroneMaterialInstance == nullptr)
 	{
 		DroneMaterialInstance = MeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, MeshComponent->GetMaterial(0));
@@ -133,7 +146,6 @@ void ASRollingDrone::HandleTakeDamage(USHealthComponent* DroneHealthComp, float 
 	}
 }
 
-
 void ASRollingDrone::Explode()
 {
 	if (bHasExploded)
@@ -142,25 +154,33 @@ void ASRollingDrone::Explode()
 	}
 
 	bHasExploded = true;
-
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation());
-
-	TArray<AActor*> IgnoredActors;
-	IgnoredActors.Add(this);
-	UGameplayStatics::ApplyRadialDamage(this, ExplosionDamage, GetActorLocation(), ExplosionRadius, nullptr, IgnoredActors, this, GetInstigatorController(), true);
+	
 	UGameplayStatics::PlaySoundAtLocation(this, ExplodeSound, GetActorLocation());
-
-	DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 12, FColor::Red, false, 4.0f, 1.0f);
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation());
+	MeshComponent->SetVisibility(false, true);
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	AudioComponent->Stop();
-	Destroy();
+
+	//destroy on server, propogated onto client due to drone object being replicated
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		TArray<AActor*> IgnoredActors;
+		IgnoredActors.Add(this);
+		UGameplayStatics::ApplyRadialDamage(this, ExplosionDamage, GetActorLocation(), ExplosionRadius, nullptr, IgnoredActors, this, GetInstigatorController(), true);
+
+		DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 12, FColor::Red, false, 4.0f, 1.0f);
+
+		//delete object after 2sec
+		SetLifeSpan(2.0f);
+	}
 }
 
 void ASRollingDrone::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	ASCharacter* PlayerPawn = Cast<ASCharacter>(OtherActor);
 
-	if (PlayerPawn)
+	if (PlayerPawn && !bHasExploded)
 	{
 		Explode();
 	}

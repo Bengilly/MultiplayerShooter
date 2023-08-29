@@ -67,9 +67,6 @@ protected:
 	//pulse material on take damage
 	UMaterialInstanceDynamic* DroneMaterialInstance;
 
-
-
-
 	//  ------------ Functions ------------  //
 
 	// Called when the game starts or when spawned
