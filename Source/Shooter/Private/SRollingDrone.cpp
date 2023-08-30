@@ -63,7 +63,6 @@ void ASRollingDrone::BeginPlay()
 		NextPointLocation = GetNextPoint();
 	}
 
-
 	AudioComponent = UGameplayStatics::SpawnSoundAttached(ChaseSound, RootComponent);
 }
 
@@ -72,10 +71,9 @@ void ASRollingDrone::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-
-		float MovementVelocity = GetVelocity().Size();
-		float VelocityVolume = FMath::GetMappedRangeValueClamped(FVector2D(10, 1000), FVector2D(0.1, 2), MovementVelocity);
-		AudioComponent->SetVolumeMultiplier(VelocityVolume);
+	float MovementVelocity = GetVelocity().Size();
+	float VelocityVolume = FMath::GetMappedRangeValueClamped(FVector2D(10, 1000), FVector2D(0.1, 2), MovementVelocity);
+	AudioComponent->SetVolumeMultiplier(VelocityVolume);
 
 	if (GetLocalRole() == ROLE_Authority && !bHasExploded)
 	{
@@ -118,8 +116,6 @@ FVector ASRollingDrone::GetNextPoint()
 	{
 		return NavigationPath->PathPoints[1];
 	}
-
-
 
 	//can't find path
 	return GetActorLocation();
@@ -178,6 +174,8 @@ void ASRollingDrone::Explode()
 
 void ASRollingDrone::NotifyActorBeginOverlap(AActor* OtherActor)
 {
+	Super::NotifyActorBeginOverlap(OtherActor);
+
 	ASCharacter* PlayerPawn = Cast<ASCharacter>(OtherActor);
 
 	if (PlayerPawn && !bHasExploded)
