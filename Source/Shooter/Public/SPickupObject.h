@@ -4,23 +4,29 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "SPowerupBase.generated.h"
+#include "SPickupObject.generated.h"
 
 class USphereComponent;
 class UDecalComponent;
+class ASPowerupObject;
 
 UCLASS()
-class SHOOTER_API ASPowerupBase : public AActor
+class SHOOTER_API ASPickupObject : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ASPowerupBase();
+	ASPickupObject();
 
 protected:
 
 	//  ------------ Variables ------------  //
+
+	UPROPERTY(EditDefaultsOnly, Category = "PickupObject")
+	float SpawnCooldown;
+
+	FTimerHandle TimerHandle_RespawnTimer;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UDecalComponent* DecalComponent;
@@ -28,10 +34,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USphereComponent* SphereComponent;
 
+	UPROPERTY(EditDefaultsOnly,Category = "PickupObject")
+	TSubclassOf<ASPowerupObject> PowerupClass;
+
+	ASPowerupObject* PowerupInstance;
 
 	
 	//  ------------ Functions ------------  //
-	// 
+
+	void SpawnPickup();
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
