@@ -18,6 +18,8 @@ public:
 	// Sets default values for this actor's properties
 	USHealthComponent();
 
+	float GetHealth() const;
+
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnHealthChangedSignature OnHealthChanged;
 
