@@ -6,6 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "SPowerupObject.generated.h"
 
+class URotatingMovementComponent;
+class UStaticMeshComponent;
+
 UCLASS()
 class SHOOTER_API ASPowerupObject : public AActor
 {
@@ -19,6 +22,13 @@ protected:
 
 	//  ------------ Variables ------------  //
 
+	int32 TickCount;
+
+	FTimerHandle TimerHandle_PowerupEffectTick;
+
+	UPROPERTY(ReplicatedUsing=OnRep_PowerupActive)
+	bool bPowerupActive;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Powerup")
 	float TimeBetweenTicks;
 
@@ -26,9 +36,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Powerup")
 	int32 TotalNumberOfTicks;
 
-	int32 TickCount;
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	URotatingMovementComponent* RotatingComponent;
 
-	FTimerHandle TimerHandle_PowerupEffectTick;
+	UPROPERTY(BlueprintReadWrite, Category = "Components")
+	UStaticMeshComponent* MeshComponent;
 
 
 	//  ------------ Functions ------------  //
@@ -36,16 +48,18 @@ protected:
 	UFUNCTION()
 	void OnEffectTick();
 
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	UFUNCTION()
+	void OnRep_PowerupActive();
 
+	UFUNCTION()
+	void OnPowerupStateChanged(bool bNewStateIsActive);
 
 public:
 
-	void ActivatePowerupObject();
+	void ActivatePowerupObject(AActor* PlayerToApplyPowerup);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Powerup")
-	void OnActivated();
+	void OnActivated(AActor* PlayerToApplyPowerup);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Powerup")
 	void OnExpired();

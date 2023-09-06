@@ -6,10 +6,13 @@
 #include "Components/DecalComponent.h"
 #include "TimerManager.h"
 #include "SPowerupObject.h"
+#include "GameFramework/RotatingMovementComponent.h"
 
 // Sets default values
 ASPickupObject::ASPickupObject()
 {
+	SpawnCooldown = 5.0f;
+
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	SphereComponent->SetSphereRadius(60.0f);
 	RootComponent = SphereComponent;
@@ -19,6 +22,7 @@ ASPickupObject::ASPickupObject()
 	DecalComponent->DecalSize = FVector(64, 60, 60);
 	DecalComponent->SetupAttachment(RootComponent);
 
+	SetReplicates(true);
 }
 
 // Called when the game starts or when spawned
@@ -26,8 +30,10 @@ void ASPickupObject::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SpawnPickup();
-	
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		SpawnPickup();
+	}
 }
 
 void ASPickupObject::NotifyActorBeginOverlap(AActor* OtherActor)
@@ -35,9 +41,9 @@ void ASPickupObject::NotifyActorBeginOverlap(AActor* OtherActor)
 	Super::NotifyActorBeginOverlap(OtherActor);
 	
 	//activate powerup if it has been successfully spawned
-	if (PowerupInstance)
+	if (PowerupInstance && GetLocalRole() == ROLE_Authority)
 	{
-		PowerupInstance->ActivatePowerupObject();
+		PowerupInstance->ActivatePowerupObject(OtherActor);
 		PowerupInstance = nullptr;
 
 		GetWorldTimerManager().SetTimer(TimerHandle_RespawnTimer, this, &ASPickupObject::SpawnPickup, SpawnCooldown);

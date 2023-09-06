@@ -10,6 +10,7 @@ class USphereComponent;
 class UDecalComponent;
 class ASPowerupObject;
 
+
 UCLASS()
 class SHOOTER_API ASPickupObject : public AActor
 {
@@ -23,8 +24,13 @@ protected:
 
 	//  ------------ Variables ------------  //
 
-	UPROPERTY(EditDefaultsOnly, Category = "PickupObject")
+	ASPowerupObject* PowerupInstance;
+
+	UPROPERTY(EditInstanceOnly, Category = "PickupObject")
 	float SpawnCooldown;
+
+	UPROPERTY(EditInstanceOnly, Category = "PickupObject")
+	TSubclassOf<ASPowerupObject> PowerupClass;
 
 	FTimerHandle TimerHandle_RespawnTimer;
 
@@ -34,12 +40,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USphereComponent* SphereComponent;
 
-	UPROPERTY(EditDefaultsOnly,Category = "PickupObject")
-	TSubclassOf<ASPowerupObject> PowerupClass;
 
-	ASPowerupObject* PowerupInstance;
-
-	
 	//  ------------ Functions ------------  //
 
 	void SpawnPickup();
