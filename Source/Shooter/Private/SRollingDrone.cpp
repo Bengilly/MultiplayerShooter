@@ -142,6 +142,18 @@ void ASRollingDrone::HandleTakeDamage(USHealthComponent* DroneHealthComp, float 
 	}
 }
 
+void ASRollingDrone::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+	Super::NotifyActorBeginOverlap(OtherActor);
+
+	ASCharacter* PlayerPawn = Cast<ASCharacter>(OtherActor);
+
+	if (PlayerPawn && !bHasExploded)
+	{
+		Explode();
+	}
+}
+
 void ASRollingDrone::Explode()
 {
 	if (bHasExploded)
@@ -172,14 +184,4 @@ void ASRollingDrone::Explode()
 	}
 }
 
-void ASRollingDrone::NotifyActorBeginOverlap(AActor* OtherActor)
-{
-	Super::NotifyActorBeginOverlap(OtherActor);
 
-	ASCharacter* PlayerPawn = Cast<ASCharacter>(OtherActor);
-
-	if (PlayerPawn && !bHasExploded)
-	{
-		Explode();
-	}
-}

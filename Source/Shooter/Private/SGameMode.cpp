@@ -29,6 +29,8 @@ void ASGameMode::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	QueryWaveState();
+
+	ScanForAlivePlayers();
 }
 
 void ASGameMode::SpawnEnemyWave()
@@ -79,14 +81,14 @@ void ASGameMode::QueryWaveState()
 	//find all enemy pawns
 	for (TActorIterator<APawn> It(GetWorld()); It; ++It)
 	{
-		APawn* TestPawn = *It;
-		if (TestPawn == nullptr || TestPawn->IsPlayerControlled())
+		APawn* PlayerPawn = *It;
+		if (PlayerPawn == nullptr || PlayerPawn->IsPlayerControlled())
 		{
 			continue;
 		}
 
 		//check if there are any enemies still alive in the wave
-		USHealthComponent* HealthComponent = Cast<USHealthComponent>(TestPawn->GetComponentByClass(USHealthComponent::StaticClass()));
+		USHealthComponent* HealthComponent = Cast<USHealthComponent>(PlayerPawn->GetComponentByClass(USHealthComponent::StaticClass()));
 		if (HealthComponent && HealthComponent->GetHealth() > 0.0f)
 		{
 			bAllEnemiesDead = false;
@@ -99,4 +101,33 @@ void ASGameMode::QueryWaveState()
 	{
 		StartTimerForNextWave();
 	}
+}
+
+void ASGameMode::ScanForAlivePlayers()
+{
+	//find if there are any alive players
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+		if (PC && PC->GetPawn())
+		{
+			APawn* MyPawn = PC->GetPawn();
+			USHealthComponent* HealthComponent = Cast<USHealthComponent>(MyPawn->GetComponentByClass(USHealthComponent::StaticClass()));
+			if (HealthComponent && HealthComponent->GetHealth() > 0.0f)
+			{
+				//player still alive
+				return;
+			}
+		}
+	}
+
+	//if no players are alive, end game
+	GameOver();
+}
+
+void ASGameMode::GameOver()
+{
+	EndEnemyWave();
+
+	UE_LOG(LogTemp, Log, TEXT("Game Over"));
 }

@@ -37,6 +37,7 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "GameMode")
 	void SpawnEnemy();
 
+	//calls blueprint to spawn enemies and hardcodes when enemy wave ends
 	void SpawnEnemyTimerElapsed();
 
 	//start spawning enemies
@@ -47,8 +48,14 @@ protected:
 
 	//timer for next enemy wave
 	void StartTimerForNextWave();
-	
+
+	//handle when to start next wave
 	void QueryWaveState();
+
+
+	void ScanForAlivePlayers();
+
+	void GameOver();
 
 public:
 
