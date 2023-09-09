@@ -5,10 +5,13 @@
 #include "TimerManager.h"
 #include "Components/SHealthComponent.h"
 #include "EngineUtils.h"
+#include "SGameState.h"
 
 
 ASGameMode::ASGameMode()
 {
+	GameStateClass = ASGameState::StaticClass();
+
 	//set tickinterval to 1 second to avoid calling every frame
 	PrimaryActorTick.TickInterval = 1.0f;
 	PrimaryActorTick.bCanEverTick = true;
@@ -31,6 +34,17 @@ void ASGameMode::Tick(float DeltaSeconds)
 	QueryWaveState();
 
 	ScanForAlivePlayers();
+}
+
+void ASGameMode::SetEnemyWaveState(EEnemyWaveState NewState)
+{
+	ASGameState* GS = GetGameState<ASGameState>();
+	{
+		if (GS)
+		{
+			GS->WaveState = NewState;
+		}
+	}
 }
 
 void ASGameMode::SpawnEnemyWave()

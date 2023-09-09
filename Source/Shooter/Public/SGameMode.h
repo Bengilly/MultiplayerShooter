@@ -6,6 +6,9 @@
 #include "GameFramework/GameModeBase.h"
 #include "SGameMode.generated.h"
 
+//forward delcare enum class in gamestate
+enum class EEnemyWaveState : uint8;
+
 /**
  * 
  */
@@ -32,6 +35,8 @@ protected:
 
 
 	//  ------------ Functions ------------  //
+
+	void SetEnemyWaveState(EEnemyWaveState NewState);
 
 	//implemented in blueprints to spawn enemy
 	UFUNCTION(BlueprintImplementableEvent, Category = "GameMode")
