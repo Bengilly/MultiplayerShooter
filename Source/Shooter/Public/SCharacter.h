@@ -25,8 +25,11 @@ protected:
 
 	//  ------------ Variables ------------  //
 
-	bool bZoom;
+	//bool bZoom;
 	float DefaultFOV;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player");
+	bool bZoom;
 	
 	UPROPERTY(Replicated)
 	ASWeapon* CurrentWeapon;

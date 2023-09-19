@@ -6,11 +6,13 @@
 #include "Components/SHealthComponent.h"
 #include "EngineUtils.h"
 #include "SGameState.h"
+#include "SPlayerState.h"
 
 
 ASGameMode::ASGameMode()
 {
 	GameStateClass = ASGameState::StaticClass();
+	PlayerStateClass = ASPlayerState::StaticClass();
 
 	//set tickinterval to 1 second to avoid calling every frame
 	PrimaryActorTick.TickInterval = 1.0f;
@@ -42,7 +44,9 @@ void ASGameMode::SetEnemyWaveState(EEnemyWaveState NewState)
 	{
 		if (GS)
 		{
-			GS->WaveState = NewState;
+			//call function on server to replicate to clients about the updating gamestate
+			GS->SetWaveState(NewState);
+			
 		}
 	}
 }
@@ -50,10 +54,11 @@ void ASGameMode::SetEnemyWaveState(EEnemyWaveState NewState)
 void ASGameMode::SpawnEnemyWave()
 {
 	WaveCount++;
-
 	EnemiesToSpawn = 2 * WaveCount;
 
 	GetWorldTimerManager().SetTimer(TimerHandle_EnemySpawner, this, &ASGameMode::SpawnEnemyTimerElapsed, 1.0f, true, 0.0f);
+
+	SetEnemyWaveState(EEnemyWaveState::SpawningWave);
 }
 
 void ASGameMode::SpawnEnemyTimerElapsed()
@@ -72,13 +77,19 @@ void ASGameMode::EndEnemyWave()
 {
 	GetWorldTimerManager().ClearTimer(TimerHandle_EnemySpawner);
 
+	SetEnemyWaveState(EEnemyWaveState::FinishedSpawning);
 }
 
 
 void ASGameMode::StartTimerForNextWave()
 {
 	GetWorldTimerManager().SetTimer(TimerHandle_NextWaveStart, this, &ASGameMode::SpawnEnemyWave, TimeBetweenEnemyWaves, false);
+
+	RespawnDeadPlayers();
+
+	SetEnemyWaveState(EEnemyWaveState::WaitingToSpawn);
 }
+
 
 void ASGameMode::QueryWaveState()
 {
@@ -114,6 +125,8 @@ void ASGameMode::QueryWaveState()
 	if (bAllEnemiesDead)
 	{
 		StartTimerForNextWave();
+
+		SetEnemyWaveState(EEnemyWaveState::WaveComplete);
 	}
 }
 
@@ -139,9 +152,28 @@ void ASGameMode::ScanForAlivePlayers()
 	GameOver();
 }
 
+
 void ASGameMode::GameOver()
 {
 	EndEnemyWave();
+	SetEnemyWaveState(EEnemyWaveState::GameOver);
 
 	UE_LOG(LogTemp, Log, TEXT("Game Over"));
+}
+
+
+void ASGameMode::RespawnDeadPlayers()
+{
+	//find if there are any alive players and respawn them - as GameMode runs on server, all player controllers are available
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+
+		//if getpawn = null, then player = dead, so respawn (when player dies, they un-possess the pawn causing it to be null)
+		if (PC && PC->GetPawn() == nullptr)
+		{
+			RestartPlayer(PC);
+		}
+
+	}
 }

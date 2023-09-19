@@ -14,6 +14,16 @@ void ASGameState::OnRep_WaveState(EEnemyWaveState PreviousState)
 	WaveStateUpdated(WaveState, PreviousState);
 }
 
+void ASGameState::SetWaveState(EEnemyWaveState NewState)
+{
+	//call on server
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		EEnemyWaveState PreviousState = WaveState;
+		WaveState = NewState;
+		OnRep_WaveState(PreviousState);
+	}
+}
 
 void ASGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {

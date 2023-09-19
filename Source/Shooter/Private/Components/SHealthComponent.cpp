@@ -3,11 +3,13 @@
 
 #include "Components/SHealthComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "SGameMode.h"
 
 // Sets default values
 USHealthComponent::USHealthComponent()
 {
 	BaseHealth = 100;
+	bIsDead = false;
 
 	SetIsReplicatedByDefault(true);
 }
@@ -39,20 +41,31 @@ float USHealthComponent::GetHealth() const
 
 void USHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
-	if (Damage <= 0.0f)
+	if (Damage <= 0.0f || bIsDead)
 	{
 		return;
 	}
 
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, BaseHealth);
-
 	UE_LOG(LogTemp, Log, TEXT("Health Change: %s"), *FString::SanitizeFloat(CurrentHealth));
 
 	OnHealthChanged.Broadcast(this, CurrentHealth, Damage, DamageType, InstigatedBy, DamageCauser);
+
+	if (CurrentHealth <= 0) 
+	{
+		bIsDead = true;
+	}
+
+	//trigger event when actor dies
+	if (bIsDead)
+	{
+		ASGameMode* GM = Cast<ASGameMode>(GetWorld()->GetAuthGameMode());
+		if (GM)
+		{
+			GM->OnActorKilled.Broadcast(GetOwner(), DamageCauser, InstigatedBy);
+		}
+	}
 }
-
-
-
 
 //  ------------ Multiplayer Functions ------------  //
 

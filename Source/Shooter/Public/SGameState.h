@@ -10,9 +10,9 @@ UENUM(BlueprintType)
 enum class EEnemyWaveState : uint8
 {
 	WaitingToSpawn,
-	Spawning,
-	Active,
-	Complete,
+	SpawningWave,
+	FinishedSpawning,
+	WaveComplete,
 	GameOver,
 
 };
@@ -33,9 +33,12 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "GameState")
 	void WaveStateUpdated(EEnemyWaveState NewState, EEnemyWaveState PreviousState);
 
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_WaveState, Category = "GameState")
+	EEnemyWaveState WaveState;
+
 public:
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_WaveState, Category = "GameState")
-	EEnemyWaveState WaveState;
+	void SetWaveState(EEnemyWaveState NewState);
+
 
 };

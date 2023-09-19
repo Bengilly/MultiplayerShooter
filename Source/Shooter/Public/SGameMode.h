@@ -9,9 +9,12 @@
 //forward delcare enum class in gamestate
 enum class EEnemyWaveState : uint8;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnActorKilled, AActor*, EnemyKilled, AActor*, DamagingActor, AController*, DamagingActorController);
+
 /**
  * 
  */
+
 UCLASS()
 class SHOOTER_API ASGameMode : public AGameModeBase
 {
@@ -54,6 +57,9 @@ protected:
 	//timer for next enemy wave
 	void StartTimerForNextWave();
 
+	//respawn dead players
+	void RespawnDeadPlayers();
+
 	//handle when to start next wave
 	void QueryWaveState();
 
@@ -66,4 +72,7 @@ public:
 
 	virtual void StartPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+
+	UPROPERTY(BlueprintAssignable, Category = "GameMode")
+	FOnActorKilled OnActorKilled;
 };

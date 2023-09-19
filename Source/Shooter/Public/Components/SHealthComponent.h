@@ -24,7 +24,14 @@ public:
 	FOnHealthChangedSignature OnHealthChanged;
 
 protected:
-	// Called when the game starts or when spawned
+
+	//  ------------ Variables ------------  //
+
+	bool bIsDead;
+
+
+	//  ------------ Functions ------------  //
+
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
