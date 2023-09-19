@@ -70,5 +70,8 @@ Saved/*
 Intermediate/*
 Plugins/*/Intermediate/*
 
+#DarkForest Assets
+Content/DarkForest/*
+
 # Cache files for the editor to use
 DerivedDataCache/*
