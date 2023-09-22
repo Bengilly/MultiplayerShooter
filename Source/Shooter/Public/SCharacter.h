@@ -74,6 +74,12 @@ protected:
 	void StartShooting();
 	void StopShooting();
 
+	UFUNCTION(Server, Reliable)
+	void ServerZoomIn();
+
+	UFUNCTION(Server, Reliable)
+	void ServerZoomOut();
+
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 	UFUNCTION()

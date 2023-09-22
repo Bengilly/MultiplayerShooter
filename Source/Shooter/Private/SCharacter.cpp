@@ -82,11 +82,22 @@ void ASCharacter::EndCrouch()
 
 void ASCharacter::ZoomIn()
 {
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerZoomIn();
+	}
+
 	bZoom = true;
+	
 }
 
 void ASCharacter::ZoomOut()
 {
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerZoomOut();
+	}
+
 	bZoom = false;
 }
 
@@ -171,6 +182,16 @@ FVector ASCharacter::GetPawnViewLocation() const
 
 //  ------------ Multiplayer Functions ------------  //
 
+void ASCharacter::ServerZoomIn_Implementation()
+{
+	ZoomIn();
+}
+
+void ASCharacter::ServerZoomOut_Implementation()
+{
+	ZoomOut();
+}
+
 void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -178,4 +199,5 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	//replicate variables
 	DOREPLIFETIME(ASCharacter, CurrentWeapon);
 	DOREPLIFETIME(ASCharacter, bPlayerDied);
+	DOREPLIFETIME(ASCharacter, bZoom);
 }
