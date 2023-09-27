@@ -27,6 +27,8 @@ ASWeapon::ASWeapon()
 	BodyDamage = 15.0f;
 	HeadshotDamage = 50.0f;
 	RateOfFire = 500;
+	CurrentAmmo = 30.0f;
+	MaxAmmo = 30.0f;
 
 	SetReplicates(true);
 	//reduce impact of latency on weapon object
@@ -43,11 +45,17 @@ void ASWeapon::BeginPlay()
 
 void ASWeapon::ShootWeapon()
 {
-
 	if (GetLocalRole() < ROLE_Authority)
 	{
 		ServerShootWeapon();
 	}
+
+	if (CurrentAmmo == 0)
+	{
+		return;
+	}
+
+	CurrentAmmo--;
 
 	//trace world from pawn head to crosshair
 	AActor* MyOwner = GetOwner();
@@ -113,6 +121,8 @@ void ASWeapon::ShootWeapon()
 		}
 
 		TimeSinceLastShot = GetWorld()->TimeSeconds;
+
+		UE_LOG(LogTemp, Log, TEXT("Ammo: %s"), *FString::SanitizeFloat(CurrentAmmo));
 	}
 
 }
@@ -123,12 +133,23 @@ void ASWeapon::StartShooting()
 	float ShootDelay = FMath::Max(TimeSinceLastShot + TimeBetweenShots - GetWorld()->TimeSeconds, 0.0f);
 
 	//if shootdelay is <0 it will use TimeBetweenShots delay value instead
-	GetWorldTimerManager().SetTimer(TimerHandler_TimeBetweenShots,this,&ASWeapon::ShootWeapon, TimeBetweenShots, true, ShootDelay);
+	GetWorldTimerManager().SetTimer(TimerHandler_TimeBetweenShots, this, &ASWeapon::ShootWeapon, TimeBetweenShots, true, ShootDelay);
 }
 
 void ASWeapon::StopShooting()
 {
 	GetWorldTimerManager().ClearTimer(TimerHandler_TimeBetweenShots);
+}
+
+int ASWeapon::QueryAmmoMissing()
+{
+	int BulletsToReload = MaxAmmo - CurrentAmmo;
+	return BulletsToReload;
+}
+
+void ASWeapon::Reload(int BulletsToAdd)
+{
+	CurrentAmmo += BulletsToAdd;
 }
 
 void ASWeapon::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector TraceImpactLocation)

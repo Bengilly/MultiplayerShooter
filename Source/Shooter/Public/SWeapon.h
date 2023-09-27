@@ -45,6 +45,9 @@ protected:
 
 	//  ------------ Variables ------------  //
 
+	int CurrentAmmo;
+	int MaxAmmo;
+
 	FTimerHandle TimerHandler_TimeBetweenShots;
 	float TimeBetweenShots;
 	float TimeSinceLastShot;
@@ -101,7 +104,8 @@ protected:
 	UFUNCTION()
 	void OnRep_LineTrace();
 
-	
-
 public:	
+
+	int QueryAmmoMissing();
+	void Reload(int BulletsToAdd);
 };

@@ -11,6 +11,7 @@ class UCameraComponent;
 class USpringArmComponent;
 class ASWeapon;
 class USHealthComponent;
+class UAnimMontage;
 
 UCLASS()
 class SHOOTER_API ASCharacter : public ACharacter
@@ -25,19 +26,34 @@ protected:
 
 	//  ------------ Variables ------------  //
 
+	FTimerHandle Timerhandle_Reload;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* ReloadMontage;
+
+	int PlayerAmmo;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
+	bool bIsReloading;
+
+	bool bIsShooting;
+
 	//bool bZoom;
 	float DefaultFOV;
 
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player");
-	bool bZoom;
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
+	bool bIsZooming;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
+	bool bSprinting;
 	
 	UPROPERTY(Replicated)
 	ASWeapon* CurrentWeapon;
 
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player");
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	bool bPlayerDied;
 
-	UPROPERTY(VisibleDefaultsOnly, Category = "Player");
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 	FName WeaponAttachSocketName;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
@@ -73,6 +89,10 @@ protected:
 	void ZoomOut();
 	void StartShooting();
 	void StopShooting();
+	void StartSprinting();
+	void StopSprinting();
+	void StartReload();
+	void ReloadWeapon();
 
 	UFUNCTION(Server, Reliable)
 	void ServerZoomIn();

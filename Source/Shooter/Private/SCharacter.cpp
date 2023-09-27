@@ -5,11 +5,13 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "SWeapon.h"
 #include "Components/CapsuleComponent.h"
 #include "Shooter/Shooter.h"
 #include "Components/SHealthComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Animation/AnimMontage.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -32,6 +34,8 @@ ASCharacter::ASCharacter()
 	ZoomInterpSpeed = 10.0f;
 
 	WeaponAttachSocketName = "WeaponSocket";
+
+	PlayerAmmo = 90;
 }
 
 // Called when the game starts or when spawned
@@ -67,16 +71,39 @@ void ASCharacter::MoveForward(float value)
 
 void ASCharacter::MoveRight(float value)
 {
+	if (bSprinting)
+	{
+		return;
+	}
+
 	AddMovementInput(GetActorRightVector() * value);
 }
 
 void ASCharacter::BeginCrouch()
 {
+	if(bIsZooming)
+	{
+		GetCharacterMovement()->MaxWalkSpeedCrouched = 100.f;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeedCrouched = 200.f;
+	}
+
 	Crouch();
 }
 
 void ASCharacter::EndCrouch()
 {
+	if (bIsZooming)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 200.0f;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 400.0f;
+	}
+
 	UnCrouch();
 }
 
@@ -87,8 +114,21 @@ void ASCharacter::ZoomIn()
 		ServerZoomIn();
 	}
 
-	bZoom = true;
-	
+	if (bSprinting)
+	{
+		bSprinting = false;
+	}
+
+	bIsZooming = true;
+
+	if (GetCharacterMovement()->bWantsToCrouch)
+	{
+		GetCharacterMovement()->MaxWalkSpeedCrouched = 100.f;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 200.f;
+	}
 }
 
 void ASCharacter::ZoomOut()
@@ -98,13 +138,23 @@ void ASCharacter::ZoomOut()
 		ServerZoomOut();
 	}
 
-	bZoom = false;
+	bIsZooming = false;
+
+	if (GetCharacterMovement()->bWantsToCrouch)
+	{
+		GetCharacterMovement()->MaxWalkSpeedCrouched = 200.f;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 400.f;
+	}
 }
 
 void ASCharacter::StartShooting()
 {
-	if (CurrentWeapon)
+	if (CurrentWeapon && !bIsReloading && !bSprinting)
 	{
+		bIsShooting = true;
 		CurrentWeapon->StartShooting();
 	}
 }
@@ -113,8 +163,56 @@ void ASCharacter::StopShooting()
 {
 	if (CurrentWeapon)
 	{
+		bIsShooting = false;
 		CurrentWeapon->StopShooting();
 	}
+}
+
+void ASCharacter::StartSprinting()
+{
+	if (bIsZooming)
+	{
+		return;
+	}
+
+	GetCharacterMovement()->MaxWalkSpeed = 600.f;
+	bSprinting = true;
+}
+
+void ASCharacter::StopSprinting()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 400.f;
+	bSprinting = false;
+}
+
+void ASCharacter::StartReload()
+{
+	if (bIsShooting || bIsReloading || PlayerAmmo == 0)
+	{
+		return;
+	}
+
+	bIsReloading = true;
+	PlayAnimMontage(ReloadMontage);
+
+	GetWorldTimerManager().SetTimer(Timerhandle_Reload, this, &ASCharacter::ReloadWeapon, 2.17f, false);
+}
+
+void ASCharacter::ReloadWeapon()
+{
+	int AmmoToReload = CurrentWeapon->QueryAmmoMissing();
+
+	if (PlayerAmmo >= AmmoToReload)
+	{
+		PlayerAmmo -= AmmoToReload;
+		CurrentWeapon->Reload(AmmoToReload);
+		bIsReloading = false;
+
+		GetWorldTimerManager().ClearTimer(Timerhandle_Reload);
+		UE_LOG(LogTemp, Log, TEXT("Remaining Player Ammo: %s"), *FString::SanitizeFloat(PlayerAmmo));
+	}
+
+	//bReloading = false;
 }
 
 void ASCharacter::OnHealthChanged(USHealthComponent* CharacterHealthComp, float Health, float HealthDelta, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
@@ -138,7 +236,7 @@ void ASCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	//true = zoomed fov, false = defaultfov
-	float TargetFOV = bZoom ? ZoomedFOV : DefaultFOV;
+	float TargetFOV = bIsZooming ? ZoomedFOV : DefaultFOV;
 
 	float NewFOV = FMath::FInterpTo(CameraComponent->FieldOfView, TargetFOV, DeltaTime, ZoomInterpSpeed);
 
@@ -166,6 +264,12 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ASCharacter::StartShooting);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ASCharacter::StopShooting);
+
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASCharacter::StartSprinting);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASCharacter::StopSprinting);
+
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASCharacter::StartReload);
+	
 }
 
 //setup line trace from camera
@@ -199,5 +303,5 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	//replicate variables
 	DOREPLIFETIME(ASCharacter, CurrentWeapon);
 	DOREPLIFETIME(ASCharacter, bPlayerDied);
-	DOREPLIFETIME(ASCharacter, bZoom);
+	DOREPLIFETIME(ASCharacter, bIsZooming);
 }
