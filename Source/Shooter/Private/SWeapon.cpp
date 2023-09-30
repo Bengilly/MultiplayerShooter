@@ -159,12 +159,15 @@ void ASWeapon::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector TraceImpa
 	switch (SurfaceType)
 	{
 	case SURFACE_BODYSHOT:
+		UGameplayStatics::PlaySoundAtLocation(this, ShootSound,this->GetActorLocation());
 		ImpactEffect = ImpactEffectBodyshot;
 		break;
 	case SURFACE_HEADSHOT:
+		UGameplayStatics::PlaySoundAtLocation(this, ShootSound, this->GetActorLocation());
 		ImpactEffect = ImpactEffectHeadshot;
 		break;
 	default:
+		UGameplayStatics::PlaySoundAtLocation(this, ShootSound, this->GetActorLocation());
 		ImpactEffect = ImpactEffectDefault;
 		break;
 	}

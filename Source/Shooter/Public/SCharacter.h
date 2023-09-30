@@ -12,6 +12,7 @@ class USpringArmComponent;
 class ASWeapon;
 class USHealthComponent;
 class UAnimMontage;
+class USoundBase;
 
 UCLASS()
 class SHOOTER_API ASCharacter : public ACharacter
@@ -31,6 +32,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	UAnimMontage* ReloadMontage;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	USoundBase* StartReloadSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	USoundBase* EndReloadSound;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player")
 	int PlayerAmmo;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
@@ -47,7 +55,7 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	bool bSprinting;
 	
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	ASWeapon* CurrentWeapon;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
@@ -94,16 +102,22 @@ protected:
 	void StartReload();
 	void ReloadWeapon();
 
+	UFUNCTION()
+	void OnHealthChanged(USHealthComponent* CharacterHealthComp, float Health, float HealthDelta, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
+
 	UFUNCTION(Server, Reliable)
 	void ServerZoomIn();
 
 	UFUNCTION(Server, Reliable)
 	void ServerZoomOut();
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+	UFUNCTION(Server, Reliable)
+	void ServerStartSprinting();
 
-	UFUNCTION()
-	void OnHealthChanged(USHealthComponent* CharacterHealthComp, float Health, float HealthDelta, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
+	UFUNCTION(Server, Reliable)
+	void ServerStopSprinting();
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 
 public:	

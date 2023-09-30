@@ -12,6 +12,7 @@
 #include "Components/SHealthComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Animation/AnimMontage.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -62,7 +63,6 @@ void ASCharacter::BeginPlay()
 		}
 	}
 }
-
 
 void ASCharacter::MoveForward(float value)
 {
@@ -120,6 +120,7 @@ void ASCharacter::ZoomIn()
 	}
 
 	bIsZooming = true;
+	
 
 	if (GetCharacterMovement()->bWantsToCrouch)
 	{
@@ -170,6 +171,11 @@ void ASCharacter::StopShooting()
 
 void ASCharacter::StartSprinting()
 {
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerStartSprinting();
+	}
+
 	if (bIsZooming)
 	{
 		return;
@@ -181,6 +187,16 @@ void ASCharacter::StartSprinting()
 
 void ASCharacter::StopSprinting()
 {
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerStopSprinting();
+	}
+
+	if (bIsZooming)
+	{
+		return;
+	}
+
 	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 	bSprinting = false;
 }
@@ -194,6 +210,7 @@ void ASCharacter::StartReload()
 
 	bIsReloading = true;
 	PlayAnimMontage(ReloadMontage);
+	UGameplayStatics::PlaySoundAtLocation(this, StartReloadSound, this->GetActorLocation());
 
 	GetWorldTimerManager().SetTimer(Timerhandle_Reload, this, &ASCharacter::ReloadWeapon, 2.17f, false);
 }
@@ -209,6 +226,9 @@ void ASCharacter::ReloadWeapon()
 		bIsReloading = false;
 
 		GetWorldTimerManager().ClearTimer(Timerhandle_Reload);
+
+		UGameplayStatics::PlaySoundAtLocation(this, EndReloadSound, this->GetActorLocation());
+
 		UE_LOG(LogTemp, Log, TEXT("Remaining Player Ammo: %s"), *FString::SanitizeFloat(PlayerAmmo));
 	}
 
@@ -296,6 +316,16 @@ void ASCharacter::ServerZoomOut_Implementation()
 	ZoomOut();
 }
 
+void ASCharacter::ServerStartSprinting_Implementation()
+{
+	StartSprinting();
+}
+
+void ASCharacter::ServerStopSprinting_Implementation()
+{
+	StopSprinting();
+}
+
 void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -304,4 +334,5 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASCharacter, CurrentWeapon);
 	DOREPLIFETIME(ASCharacter, bPlayerDied);
 	DOREPLIFETIME(ASCharacter, bIsZooming);
+	DOREPLIFETIME(ASCharacter, bSprinting);
 }

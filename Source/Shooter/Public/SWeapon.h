@@ -9,6 +9,7 @@
 class USkeletalMeshComponent;
 class UDamageType;
 class UParticleSystem;
+class USoundBase;
 
 //multiplayer -- holds data for single weapon trace
 USTRUCT()
@@ -45,12 +46,14 @@ protected:
 
 	//  ------------ Variables ------------  //
 
-	int CurrentAmmo;
-	int MaxAmmo;
-
 	FTimerHandle TimerHandler_TimeBetweenShots;
 	float TimeBetweenShots;
 	float TimeSinceLastShot;
+
+	int MaxAmmo;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+	int CurrentAmmo;
 
 	UPROPERTY(ReplicatedUsing=OnRep_LineTrace)
 	FLineTrace LineTrace;
@@ -88,6 +91,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	UParticleSystem* WeaponTracerEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	USoundBase* ShootSound;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName MuzzleSocketName;
