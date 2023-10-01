@@ -183,6 +183,11 @@ void ASWeapon::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector TraceImpa
 	}
 }
 
+int ASWeapon::GetCurrentAmmo()
+{
+	return CurrentAmmo;
+}
+
 
 void ASWeapon::PlayWeaponEffects(FVector TracerEndPoint)
 {

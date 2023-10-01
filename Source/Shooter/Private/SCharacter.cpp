@@ -162,10 +162,10 @@ void ASCharacter::StartShooting()
 
 void ASCharacter::StopShooting()
 {
-	if (CurrentWeapon)
+	if (CurrentWeapon && bIsShooting)
 	{
-		bIsShooting = false;
 		CurrentWeapon->StopShooting();
+		bIsShooting = false;
 	}
 }
 
@@ -203,16 +203,19 @@ void ASCharacter::StopSprinting()
 
 void ASCharacter::StartReload()
 {
-	if (bIsShooting || bIsReloading || PlayerAmmo == 0)
+	if (bIsShooting || bIsReloading || PlayerAmmo == 0 || CurrentWeapon->GetCurrentAmmo() == 30)
 	{
+		UE_LOG(LogTemp, Log, TEXT("Don't reload"));
 		return;
 	}
+	else 
+	{
+		bIsReloading = true;
+		PlayAnimMontage(ReloadMontage);
+		UGameplayStatics::PlaySoundAtLocation(this, StartReloadSound, this->GetActorLocation());
 
-	bIsReloading = true;
-	PlayAnimMontage(ReloadMontage);
-	UGameplayStatics::PlaySoundAtLocation(this, StartReloadSound, this->GetActorLocation());
-
-	GetWorldTimerManager().SetTimer(Timerhandle_Reload, this, &ASCharacter::ReloadWeapon, 2.17f, false);
+		GetWorldTimerManager().SetTimer(Timerhandle_Reload, this, &ASCharacter::ReloadWeapon, 2.17, false);
+	}
 }
 
 void ASCharacter::ReloadWeapon()
@@ -223,7 +226,6 @@ void ASCharacter::ReloadWeapon()
 	{
 		PlayerAmmo -= AmmoToReload;
 		CurrentWeapon->Reload(AmmoToReload);
-		bIsReloading = false;
 
 		GetWorldTimerManager().ClearTimer(Timerhandle_Reload);
 
@@ -232,6 +234,7 @@ void ASCharacter::ReloadWeapon()
 		UE_LOG(LogTemp, Log, TEXT("Remaining Player Ammo: %s"), *FString::SanitizeFloat(PlayerAmmo));
 	}
 
+	bIsReloading = false;
 	//bReloading = false;
 }
 

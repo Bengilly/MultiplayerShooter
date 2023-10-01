@@ -41,6 +41,7 @@ public:
 	void StartShooting();
 	void StopShooting();
 	void PlayImpactEffects(EPhysicalSurface SurfaceType, FVector TraceImpactLocation);
+	int GetCurrentAmmo();
 
 protected:
 
