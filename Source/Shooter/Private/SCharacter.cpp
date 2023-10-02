@@ -235,7 +235,6 @@ void ASCharacter::ReloadWeapon()
 	}
 
 	bIsReloading = false;
-	//bReloading = false;
 }
 
 void ASCharacter::OnHealthChanged(USHealthComponent* CharacterHealthComp, float Health, float HealthDelta, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
