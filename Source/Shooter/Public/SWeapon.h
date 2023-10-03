@@ -53,6 +53,14 @@ protected:
 
 	int MaxAmmo;
 
+	//horizontal bullet spread (degrees)
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (ClampMin = 0.0f))
+	float HorizontalBulletSpread;
+
+	//vertical bullet spread (degrees)
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (ClampMin = 0.0f))
+	float VerticalBulletSpread;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
 	int CurrentAmmo;
 

@@ -29,6 +29,8 @@ ASWeapon::ASWeapon()
 	RateOfFire = 500;
 	CurrentAmmo = 30.0f;
 	MaxAmmo = 30.0f;
+	HorizontalBulletSpread = 1.0f;
+	VerticalBulletSpread = 1.0f;
 
 	SetReplicates(true);
 	//reduce impact of latency on weapon object
@@ -66,6 +68,11 @@ void ASWeapon::ShootWeapon()
 		MyOwner->GetActorEyesViewPoint(Eyelocation, EyeRotation);
 
 		FVector ShotDirection = EyeRotation.Vector();
+
+		//bullet spread
+		float HorizontalRad = FMath::DegreesToRadians(HorizontalBulletSpread);
+		float VerticalRad = FMath::DegreesToRadians(VerticalBulletSpread);
+		ShotDirection = FMath::VRandCone(ShotDirection, HorizontalRad, VerticalRad);
 
 		FVector TraceEnd = Eyelocation + (ShotDirection * 10000);
 

@@ -28,6 +28,8 @@ protected:
 	//  ------------ Variables ------------  //
 
 	FTimerHandle Timerhandle_Reload;
+	bool bIsShooting;
+	float DefaultFOV;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	UAnimMontage* ReloadMontage;
@@ -39,15 +41,13 @@ protected:
 	USoundBase* EndReloadSound;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player")
-	int PlayerAmmo;
+	int PlayerRifleAmmo;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	int PlayerPistolAmmo;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	bool bIsReloading;
-
-	bool bIsShooting;
-
-	//bool bZoom;
-	float DefaultFOV;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	bool bIsZooming;
@@ -62,10 +62,16 @@ protected:
 	bool bPlayerDied;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
-	FName WeaponAttachSocketName;
+	FName RifleAttachSocketName;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
+	FName PistolAttachSocketName;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
-	TSubclassOf<ASWeapon> DefaultWeaponClass;
+	TSubclassOf<ASWeapon> RifleWeaponClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	TSubclassOf<ASWeapon> PistolWeaponClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	float ZoomedFOV;
@@ -101,6 +107,8 @@ protected:
 	void StopSprinting();
 	void StartReload();
 	void ReloadWeapon();
+	void EquipRifle();
+	void EquipPistol();
 
 	UFUNCTION()
 	void OnHealthChanged(USHealthComponent* CharacterHealthComp, float Health, float HealthDelta, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);

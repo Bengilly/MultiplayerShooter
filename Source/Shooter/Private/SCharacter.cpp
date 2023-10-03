@@ -34,9 +34,13 @@ ASCharacter::ASCharacter()
 	ZoomedFOV = 60.0f;
 	ZoomInterpSpeed = 10.0f;
 
-	WeaponAttachSocketName = "WeaponSocket";
+	RifleAttachSocketName = "Socket_Rifle";
+	PistolAttachSocketName = "Socket_Pistol";
 
-	PlayerAmmo = 90;
+	PlayerRifleAmmo = 90;
+	PlayerPistolAmmo = 30;
+
+
 }
 
 // Called when the game starts or when spawned
@@ -55,11 +59,12 @@ void ASCharacter::BeginPlay()
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		CurrentWeapon = GetWorld()->SpawnActor<ASWeapon>(DefaultWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		CurrentWeapon = GetWorld()->SpawnActor<ASWeapon>(RifleWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+
 		if (CurrentWeapon)
 		{
 			CurrentWeapon->SetOwner(this);
-			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponAttachSocketName);
+			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RifleAttachSocketName);
 		}
 	}
 }
@@ -203,9 +208,9 @@ void ASCharacter::StopSprinting()
 
 void ASCharacter::StartReload()
 {
-	if (bIsShooting || bIsReloading || PlayerAmmo == 0 || CurrentWeapon->GetCurrentAmmo() == 30)
+	if (bIsShooting || bIsReloading || PlayerRifleAmmo == 0 || CurrentWeapon->GetCurrentAmmo() == 30)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Don't reload"));
+		UE_LOG(LogTemp, Log, TEXT("Reload blocked"));
 		return;
 	}
 	else 
@@ -222,19 +227,35 @@ void ASCharacter::ReloadWeapon()
 {
 	int AmmoToReload = CurrentWeapon->QueryAmmoMissing();
 
-	if (PlayerAmmo >= AmmoToReload)
+	if (PlayerRifleAmmo >= AmmoToReload)
 	{
-		PlayerAmmo -= AmmoToReload;
+		PlayerRifleAmmo -= AmmoToReload;
 		CurrentWeapon->Reload(AmmoToReload);
 
 		GetWorldTimerManager().ClearTimer(Timerhandle_Reload);
 
 		UGameplayStatics::PlaySoundAtLocation(this, EndReloadSound, this->GetActorLocation());
 
-		UE_LOG(LogTemp, Log, TEXT("Remaining Player Ammo: %s"), *FString::SanitizeFloat(PlayerAmmo));
+		UE_LOG(LogTemp, Log, TEXT("Remaining Player Ammo: %s"), *FString::SanitizeFloat(PlayerRifleAmmo));
+	}
+	else if(PlayerRifleAmmo < AmmoToReload)
+	{
+		//if player doesn't have enough ammo to refill magazine, add remaining bullets to current mag
+		CurrentWeapon->Reload(PlayerRifleAmmo);
+		PlayerRifleAmmo = 0;
 	}
 
 	bIsReloading = false;
+}
+
+void ASCharacter::EquipRifle()
+{
+
+}
+
+void ASCharacter::EquipPistol()
+{
+
 }
 
 void ASCharacter::OnHealthChanged(USHealthComponent* CharacterHealthComp, float Health, float HealthDelta, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
@@ -292,6 +313,8 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASCharacter::StartReload);
 	
+	PlayerInputComponent->BindAction("EquipRifle", IE_Pressed, this, &ASCharacter::EquipRifle);
+	PlayerInputComponent->BindAction("EquipPistol", IE_Pressed, this, &ASCharacter::EquipPistol);
 }
 
 //setup line trace from camera
