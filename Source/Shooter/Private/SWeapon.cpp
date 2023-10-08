@@ -27,8 +27,8 @@ ASWeapon::ASWeapon()
 	BodyDamage = 15.0f;
 	HeadshotDamage = 50.0f;
 	RateOfFire = 500;
-	CurrentAmmo = 30.0f;
-	MaxAmmo = 30.0f;
+	CurrentAmmo = 0.0f;
+	MaxAmmoPerMagazine = 0.0f;
 	HorizontalBulletSpread = 1.0f;
 	VerticalBulletSpread = 1.0f;
 
@@ -43,6 +43,7 @@ void ASWeapon::BeginPlay()
 	Super::BeginPlay();
 
 	TimeBetweenShots = 60 / RateOfFire;
+	CurrentAmmo = MaxAmmoPerMagazine;
 }
 
 void ASWeapon::ShootWeapon()
@@ -85,7 +86,7 @@ void ASWeapon::ShootWeapon()
 		//particle "Target" parameter for smoke trail
 		FVector WeaponTracerEndPoint = TraceEnd;
 		EPhysicalSurface SurfaceType = SurfaceType_Default;
-
+		
 		FHitResult Hit;
 		if (GetWorld()->LineTraceSingleByChannel(Hit, Eyelocation, TraceEnd, COLLISION_WEAPON, QueryParams))
 		{
@@ -93,7 +94,7 @@ void ASWeapon::ShootWeapon()
 
 			//apply damage depending on surface hit with trace
 			float WeaponDamage;
-
+			
 			SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
 			if (SurfaceType == SURFACE_HEADSHOT)
 			{
@@ -148,15 +149,32 @@ void ASWeapon::StopShooting()
 	GetWorldTimerManager().ClearTimer(TimerHandler_TimeBetweenShots);
 }
 
+int ASWeapon::GetCurrentAmmo()
+{
+	return CurrentAmmo;
+}
+
 int ASWeapon::QueryAmmoMissing()
 {
-	int BulletsToReload = MaxAmmo - CurrentAmmo;
+	int BulletsToReload = MaxAmmoPerMagazine - CurrentAmmo;
 	return BulletsToReload;
 }
 
 void ASWeapon::Reload(int BulletsToAdd)
 {
 	CurrentAmmo += BulletsToAdd;
+}
+
+bool ASWeapon::CheckIfMagazineFull()
+{
+	if (GetCurrentAmmo() == MaxAmmoPerMagazine)
+	{
+		return true;
+	}
+	else 
+	{
+		return false;
+	}
 }
 
 void ASWeapon::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector TraceImpactLocation)
@@ -190,9 +208,9 @@ void ASWeapon::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector TraceImpa
 	}
 }
 
-int ASWeapon::GetCurrentAmmo()
+USkeletalMeshComponent* ASWeapon::GetWeaponMesh()
 {
-	return CurrentAmmo;
+	return MeshComp;
 }
 
 

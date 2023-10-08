@@ -59,13 +59,20 @@ void ASCharacter::BeginPlay()
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		CurrentWeapon = GetWorld()->SpawnActor<ASWeapon>(RifleWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		ASWeapon* Rifle = GetWorld()->SpawnActor<ASWeapon>(RifleWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		Rifle->SetOwner(this);
+		Rifle->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RifleAttachSocketName);
+		WeaponClassArray.Add(Rifle);
 
-		if (CurrentWeapon)
-		{
-			CurrentWeapon->SetOwner(this);
-			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RifleAttachSocketName);
-		}
+		ASWeapon* Pistol = GetWorld()->SpawnActor<ASWeapon>(PistolWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		Pistol->SetOwner(this);
+		Pistol->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, PistolAttachSocketName);
+		WeaponClassArray.Add(Pistol);
+
+		WeaponAmmoMap.Add(Rifle, PlayerRifleAmmo);
+		WeaponAmmoMap.Add(Pistol, PlayerPistolAmmo);
+
+		CurrentWeapon = Rifle;
 	}
 }
 
@@ -208,7 +215,7 @@ void ASCharacter::StopSprinting()
 
 void ASCharacter::StartReload()
 {
-	if (bIsShooting || bIsReloading || PlayerRifleAmmo == 0 || CurrentWeapon->GetCurrentAmmo() == 30)
+	if (bIsShooting || bIsReloading || PlayerRifleAmmo == 0 || PlayerPistolAmmo == 0 || CurrentWeapon->CheckIfMagazineFull())
 	{
 		UE_LOG(LogTemp, Log, TEXT("Reload blocked"));
 		return;
@@ -219,30 +226,34 @@ void ASCharacter::StartReload()
 		PlayAnimMontage(ReloadMontage);
 		UGameplayStatics::PlaySoundAtLocation(this, StartReloadSound, this->GetActorLocation());
 
-		GetWorldTimerManager().SetTimer(Timerhandle_Reload, this, &ASCharacter::ReloadWeapon, 2.17, false);
+		//Bind delegate to use function parameters
+		FTimerDelegate TimerDel;
+		TimerDel.BindUFunction(this, "ReloadWeapon", CurrentWeapon);
+		GetWorld()->GetTimerManager().SetTimer(Timerhandle_Reload, TimerDel, 2.17, false);
 	}
 }
 
-void ASCharacter::ReloadWeapon()
+///*REFACTOR*/// - additional parameter for ammo type-
+void ASCharacter::ReloadWeapon(ASWeapon* EquippedWeapon)
 {
-	int AmmoToReload = CurrentWeapon->QueryAmmoMissing();
+	int AmmoToReload = EquippedWeapon->QueryAmmoMissing();
+	
+	int* Ammo = WeaponAmmoMap.Find(EquippedWeapon);
 
-	if (PlayerRifleAmmo >= AmmoToReload)
+	if (*Ammo >= AmmoToReload)
 	{
-		PlayerRifleAmmo -= AmmoToReload;
-		CurrentWeapon->Reload(AmmoToReload);
+		*Ammo -= AmmoToReload;
+		EquippedWeapon->Reload(AmmoToReload);
 
 		GetWorldTimerManager().ClearTimer(Timerhandle_Reload);
-
 		UGameplayStatics::PlaySoundAtLocation(this, EndReloadSound, this->GetActorLocation());
-
-		UE_LOG(LogTemp, Log, TEXT("Remaining Player Ammo: %s"), *FString::SanitizeFloat(PlayerRifleAmmo));
+		UE_LOG(LogTemp, Log, TEXT("Remaining Player Ammo: %s"), *FString::SanitizeFloat(*Ammo));
 	}
-	else if(PlayerRifleAmmo < AmmoToReload)
+	else if (*Ammo < AmmoToReload)
 	{
 		//if player doesn't have enough ammo to refill magazine, add remaining bullets to current mag
-		CurrentWeapon->Reload(PlayerRifleAmmo);
-		PlayerRifleAmmo = 0;
+		EquippedWeapon->Reload(*Ammo);
+		*Ammo = 0;
 	}
 
 	bIsReloading = false;
@@ -250,12 +261,32 @@ void ASCharacter::ReloadWeapon()
 
 void ASCharacter::EquipRifle()
 {
-
+	if (CurrentWeapon)
+	{
+		EquipWeapon(WeaponClassArray[0]);
+	}
 }
 
 void ASCharacter::EquipPistol()
 {
 
+	if (CurrentWeapon)
+	{
+		EquipWeapon(WeaponClassArray[1]);
+	}
+}
+
+void ASCharacter::EquipWeapon(ASWeapon* Weapon)
+{
+	if (bIsShooting || bIsReloading || bIsZooming)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Weapon Switch Blocked"));
+		return;
+	}
+
+	CurrentWeapon->GetWeaponMesh()->SetHiddenInGame(true);
+	CurrentWeapon = Weapon;
+	CurrentWeapon->GetWeaponMesh()->SetHiddenInGame(false);
 }
 
 void ASCharacter::OnHealthChanged(USHealthComponent* CharacterHealthComp, float Health, float HealthDelta, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)

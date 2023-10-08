@@ -41,7 +41,12 @@ public:
 	void StartShooting();
 	void StopShooting();
 	void PlayImpactEffects(EPhysicalSurface SurfaceType, FVector TraceImpactLocation);
+	USkeletalMeshComponent* GetWeaponMesh();
+
 	int GetCurrentAmmo();
+	int QueryAmmoMissing();
+	void Reload(int BulletsToAdd);
+	bool CheckIfMagazineFull();
 
 protected:
 
@@ -51,7 +56,8 @@ protected:
 	float TimeBetweenShots;
 	float TimeSinceLastShot;
 
-	int MaxAmmo;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	int MaxAmmoPerMagazine;
 
 	//horizontal bullet spread (degrees)
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon", meta = (ClampMin = 0.0f))
@@ -121,6 +127,5 @@ protected:
 
 public:	
 
-	int QueryAmmoMissing();
-	void Reload(int BulletsToAdd);
+
 };

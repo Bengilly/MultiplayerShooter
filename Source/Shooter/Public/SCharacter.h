@@ -6,7 +6,6 @@
 #include "GameFramework/Character.h"
 #include "SCharacter.generated.h"
 
-
 class UCameraComponent;
 class USpringArmComponent;
 class ASWeapon;
@@ -30,6 +29,11 @@ protected:
 	FTimerHandle Timerhandle_Reload;
 	bool bIsShooting;
 	float DefaultFOV;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+	TMap<ASWeapon*, int> WeaponAmmoMap;
+
+	TArray<ASWeapon*> WeaponClassArray;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	UAnimMontage* ReloadMontage;
@@ -106,7 +110,11 @@ protected:
 	void StartSprinting();
 	void StopSprinting();
 	void StartReload();
-	void ReloadWeapon();
+
+	UFUNCTION()
+	void ReloadWeapon(ASWeapon* EquippedWeapon);
+
+	void EquipWeapon(ASWeapon* WeaponIndex);
 	void EquipRifle();
 	void EquipPistol();
 
