@@ -13,6 +13,8 @@
 #include "Net/UnrealNetwork.h"
 #include "Animation/AnimMontage.h"
 #include "Kismet/GameplayStatics.h"
+#include "TimerManager.h"
+#include "Logging/StructuredLog.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -37,10 +39,8 @@ ASCharacter::ASCharacter()
 	RifleAttachSocketName = "Socket_Rifle";
 	PistolAttachSocketName = "Socket_Pistol";
 
-	PlayerRifleAmmo = 90;
-	PlayerPistolAmmo = 30;
-
-
+	WeaponClassArray = {};
+	WeaponAmmoMap = {};
 }
 
 // Called when the game starts or when spawned
@@ -52,28 +52,28 @@ void ASCharacter::BeginPlay()
 
 	HealthComponent->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChanged);
 
-	//only run on server
-	if (GetLocalRole() == ROLE_Authority)
-	{
-		//spawn default weapon
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		ASWeapon* Rifle = GetWorld()->SpawnActor<ASWeapon>(RifleWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-		Rifle->SetOwner(this);
-		Rifle->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RifleAttachSocketName);
-		WeaponClassArray.Add(Rifle);
+	ASWeapon* Rifle = GetWorld()->SpawnActor<ASWeapon>(RifleWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	Rifle->SetOwner(this);
+	Rifle->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RifleAttachSocketName);
+	Rifle->GetWeaponMesh()->SetHiddenInGame(true);
+	WeaponClassArray.Add(Rifle);
+	WeaponAmmoMap.Add(Rifle, PlayerRifleAmmo);
 
-		ASWeapon* Pistol = GetWorld()->SpawnActor<ASWeapon>(PistolWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-		Pistol->SetOwner(this);
-		Pistol->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, PistolAttachSocketName);
-		WeaponClassArray.Add(Pistol);
+	ASWeapon* Pistol = GetWorld()->SpawnActor<ASWeapon>(PistolWeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	Pistol->SetOwner(this);
+	Pistol->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, PistolAttachSocketName);
+	Pistol->GetWeaponMesh()->SetHiddenInGame(true);
+	WeaponClassArray.Add(Pistol);
+	WeaponAmmoMap.Add(Pistol, PlayerPistolAmmo);
 
-		WeaponAmmoMap.Add(Rifle, PlayerRifleAmmo);
-		WeaponAmmoMap.Add(Pistol, PlayerPistolAmmo);
+	PreviousWeapon = WeaponClassArray[0];
+	CurrentWeapon = WeaponClassArray[0];
 
-		CurrentWeapon = Rifle;
-	}
+	//equip rifle by default
+	SwitchToRifle();
 }
 
 void ASCharacter::MoveForward(float value)
@@ -132,7 +132,6 @@ void ASCharacter::ZoomIn()
 	}
 
 	bIsZooming = true;
-	
 
 	if (GetCharacterMovement()->bWantsToCrouch)
 	{
@@ -213,8 +212,21 @@ void ASCharacter::StopSprinting()
 	bSprinting = false;
 }
 
+void ASCharacter::StartJumping()
+{
+	if (!bIsZooming)
+	{
+		ACharacter::Jump();
+	}
+}
+
 void ASCharacter::StartReload()
 {
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerStartReload();
+	}
+
 	if (bIsShooting || bIsReloading || PlayerRifleAmmo == 0 || PlayerPistolAmmo == 0 || CurrentWeapon->CheckIfMagazineFull())
 	{
 		UE_LOG(LogTemp, Log, TEXT("Reload blocked"));
@@ -233,9 +245,14 @@ void ASCharacter::StartReload()
 	}
 }
 
-///*REFACTOR*/// - additional parameter for ammo type-
+//reload ammo depending on current weapon equipped
 void ASCharacter::ReloadWeapon(ASWeapon* EquippedWeapon)
 {
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerReloadWeapon(EquippedWeapon);
+	}
+
 	int AmmoToReload = EquippedWeapon->QueryAmmoMissing();
 	
 	int* Ammo = WeaponAmmoMap.Find(EquippedWeapon);
@@ -259,34 +276,76 @@ void ASCharacter::ReloadWeapon(ASWeapon* EquippedWeapon)
 	bIsReloading = false;
 }
 
-void ASCharacter::EquipRifle()
+void ASCharacter::SwitchToRifle()
 {
-	if (CurrentWeapon)
+	if (GetLocalRole() < ROLE_Authority)
 	{
-		EquipWeapon(WeaponClassArray[0]);
+		ServerSwitchToRifle();
 	}
+	if (!CurrentWeapon || bIsShooting || bIsReloading || bIsZooming) { return; }
+
+	PlayAnimMontage(SwitchWeapon);
+	CurrentWeapon->PlayUnEquipAudio();	//play sound specific to weapon already equipped
+
+	//need to trigger onrep before reload timer begins
+	PreviousWeapon = CurrentWeapon;
+	CurrentWeapon = WeaponClassArray[0];
+
+	//start timer to switch weapon
+	FTimerDelegate TimerDel_SwitchToRifle;
+	TimerDel_SwitchToRifle.BindUFunction(this, "EquipWeapon", WeaponClassArray[0]);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandler_SwitchWeapon, TimerDel_SwitchToRifle, 1.00, false);
 }
 
-void ASCharacter::EquipPistol()
+void ASCharacter::SwitchToPistol()
 {
-
-	if (CurrentWeapon)
+	if (GetLocalRole() < ROLE_Authority)
 	{
-		EquipWeapon(WeaponClassArray[1]);
+		ServerSwitchToPistol();
 	}
+	if (!CurrentWeapon || bIsShooting || bIsReloading || bIsZooming) { return; }
+
+	PlayAnimMontage(SwitchWeapon);
+	CurrentWeapon->PlayUnEquipAudio();	//play sound specific to weapon already equipped
+
+	//need to trigger onrep before reload timer begins
+	PreviousWeapon = CurrentWeapon;
+	CurrentWeapon = WeaponClassArray[1];
+
+	//start timer to switch weapon
+	FTimerDelegate TimerDel_SwitchToPistol;
+	TimerDel_SwitchToPistol.BindUFunction(this, "EquipWeapon", WeaponClassArray[1]);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandler_SwitchWeapon, TimerDel_SwitchToPistol, 1.00, false);
 }
 
 void ASCharacter::EquipWeapon(ASWeapon* Weapon)
 {
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		ServerEquipWeapon(Weapon);
+	}
+
 	if (bIsShooting || bIsReloading || bIsZooming)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Weapon Switch Blocked"));
 		return;
 	}
+	GetWorldTimerManager().ClearTimer(TimerHandler_SwitchWeapon);
 
-	CurrentWeapon->GetWeaponMesh()->SetHiddenInGame(true);
-	CurrentWeapon = Weapon;
+	PreviousWeapon->GetWeaponMesh()->SetHiddenInGame(true);
 	CurrentWeapon->GetWeaponMesh()->SetHiddenInGame(false);
+
+	Weapon->PlayEquipAudio();	//plays sound specific to weapon being equipped
+}
+
+void ASCharacter::OnRep_WeaponSwitch()
+{
+	/* add function to start timer before switching meshes to sync up with client animation */
+
+	//play reload animation, update weapon mesh
+	PlayAnimMontage(SwitchWeapon);
+	PreviousWeapon->GetWeaponMesh()->SetHiddenInGame(true);
+	CurrentWeapon->GetWeaponMesh()->SetHiddenInGame(false);	
 }
 
 void ASCharacter::OnHealthChanged(USHealthComponent* CharacterHealthComp, float Health, float HealthDelta, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
@@ -331,7 +390,7 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ASCharacter::BeginCrouch);
 	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &ASCharacter::EndCrouch);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASCharacter::StartJumping);
 
 	PlayerInputComponent->BindAction("Zoom", IE_Pressed, this, &ASCharacter::ZoomIn);
 	PlayerInputComponent->BindAction("Zoom", IE_Released, this, &ASCharacter::ZoomOut);
@@ -344,8 +403,8 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &ASCharacter::StartReload);
 	
-	PlayerInputComponent->BindAction("EquipRifle", IE_Pressed, this, &ASCharacter::EquipRifle);
-	PlayerInputComponent->BindAction("EquipPistol", IE_Pressed, this, &ASCharacter::EquipPistol);
+	PlayerInputComponent->BindAction("EquipRifle", IE_Pressed, this, &ASCharacter::SwitchToRifle);
+	PlayerInputComponent->BindAction("EquipPistol", IE_Pressed, this, &ASCharacter::SwitchToPistol);
 }
 
 //setup line trace from camera
@@ -361,6 +420,32 @@ FVector ASCharacter::GetPawnViewLocation() const
 
 
 //  ------------ Multiplayer Functions ------------  //
+
+
+void ASCharacter::ServerStartReload_Implementation()
+{
+	StartReload();
+}
+
+void ASCharacter::ServerReloadWeapon_Implementation(ASWeapon* EquippedWeapon)
+{
+	ReloadWeapon(EquippedWeapon);
+}
+
+void ASCharacter::ServerEquipWeapon_Implementation(ASWeapon* Weapon)
+{
+	EquipWeapon(Weapon);
+}
+
+void ASCharacter::ServerSwitchToRifle_Implementation()
+{
+	SwitchToRifle();
+}
+
+void ASCharacter::ServerSwitchToPistol_Implementation()
+{
+	SwitchToPistol();
+}
 
 void ASCharacter::ServerZoomIn_Implementation()
 {
@@ -388,7 +473,22 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 	//replicate variables
 	DOREPLIFETIME(ASCharacter, CurrentWeapon);
+	DOREPLIFETIME(ASCharacter, PreviousWeapon);
+	DOREPLIFETIME(ASCharacter, PlayerRifleAmmo);
+	DOREPLIFETIME(ASCharacter, PlayerPistolAmmo);
+
 	DOREPLIFETIME(ASCharacter, bPlayerDied);
 	DOREPLIFETIME(ASCharacter, bIsZooming);
 	DOREPLIFETIME(ASCharacter, bSprinting);
+	DOREPLIFETIME(ASCharacter, bIsReloading);
+	DOREPLIFETIME(ASCharacter, bIsShooting);
+
+
+	DOREPLIFETIME(ASCharacter, SwitchWeapon);
+	
+	DOREPLIFETIME(ASCharacter, WeaponClassArray);
+	
+	//DOREPLIFETIME(ASCharacter, WeaponAmmoMap);
+
+
 }

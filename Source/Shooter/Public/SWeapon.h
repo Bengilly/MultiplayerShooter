@@ -13,7 +13,7 @@ class USoundBase;
 
 //multiplayer -- holds data for single weapon trace
 USTRUCT()
-struct FLineTrace 
+struct FHitscanLineTrace 
 {
 	GENERATED_BODY()
 public:
@@ -48,6 +48,9 @@ public:
 	void Reload(int BulletsToAdd);
 	bool CheckIfMagazineFull();
 
+	void PlayEquipAudio();
+	void PlayUnEquipAudio();
+
 protected:
 
 	//  ------------ Variables ------------  //
@@ -71,7 +74,7 @@ protected:
 	int CurrentAmmo;
 
 	UPROPERTY(ReplicatedUsing=OnRep_LineTrace)
-	FLineTrace LineTrace;
+	FHitscanLineTrace LineTrace;
 
 	//bullets shot per minute
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
@@ -115,6 +118,15 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName TracerTargetName;
+
+	//  ------------ Audio ------------  // 
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	USoundBase* EquipSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	USoundBase* UnEquipSound;
+
 
 	//  ------------ Functions ------------  //
 

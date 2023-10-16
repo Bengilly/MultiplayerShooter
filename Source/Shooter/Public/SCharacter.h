@@ -12,6 +12,7 @@ class ASWeapon;
 class USHealthComponent;
 class UAnimMontage;
 class USoundBase;
+class USkeletalMeshComponent;
 
 UCLASS()
 class SHOOTER_API ASCharacter : public ACharacter
@@ -25,29 +26,34 @@ public:
 protected:
 
 	//  ------------ Variables ------------  //
-
-	FTimerHandle Timerhandle_Reload;
-	bool bIsShooting;
 	float DefaultFOV;
 
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponSwitch, BlueprintReadOnly)
+	ASWeapon* CurrentWeapon;
+
+	UPROPERTY(Replicated)
+	ASWeapon* PreviousWeapon;
+
+	FTimerHandle Timerhandle_Reload;
+	FTimerHandle TimerHandler_SwitchWeapon;
+
+	//map to store player ammo for corresponding weapon
 	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
 	TMap<ASWeapon*, int> WeaponAmmoMap;
 
+	UPROPERTY(Replicated)
 	TArray<ASWeapon*> WeaponClassArray;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UPROPERTY(EditDefaultsOnly, Category = "Animations")
 	UAnimMontage* ReloadMontage;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	USoundBase* StartReloadSound;
+	UPROPERTY(Replicated, EditDefaultsOnly, Category = "Animations")
+	UAnimMontage* SwitchWeapon;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	USoundBase* EndReloadSound;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	UPROPERTY(Replicated, EditDefaultsOnly, BlueprintReadOnly, Category = "Player")
 	int PlayerRifleAmmo;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	UPROPERTY(Replicated, EditDefaultsOnly, BlueprintReadOnly, Category = "Player")
 	int PlayerPistolAmmo;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
@@ -58,9 +64,9 @@ protected:
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	bool bSprinting;
-	
-	UPROPERTY(Replicated, BlueprintReadOnly)
-	ASWeapon* CurrentWeapon;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
+	bool bIsShooting;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	bool bPlayerDied;
@@ -92,6 +98,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USHealthComponent* HealthComponent;
 
+	//  ------------ Audio ------------  // 
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	USoundBase* StartReloadSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	USoundBase* EndReloadSound;
 
 	//  ------------ Functions ------------  //
 
@@ -110,17 +123,39 @@ protected:
 	void StartSprinting();
 	void StopSprinting();
 	void StartReload();
+	void StartJumping();
 
 	UFUNCTION()
 	void ReloadWeapon(ASWeapon* EquippedWeapon);
 
-	void EquipWeapon(ASWeapon* WeaponIndex);
-	void EquipRifle();
-	void EquipPistol();
+	UFUNCTION()
+	void EquipWeapon(ASWeapon* Weapon);
+	void SwitchToRifle();
+	void SwitchToPistol();
 
 	UFUNCTION()
 	void OnHealthChanged(USHealthComponent* CharacterHealthComp, float Health, float HealthDelta, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
 
+	//  ------------ Multiplayer Functions ------------  //
+
+	UFUNCTION(Server, Reliable)
+	void ServerStartReload();
+	
+	UFUNCTION(Server, Reliable)
+	void ServerReloadWeapon(ASWeapon* EquippedWeapon);
+
+	UFUNCTION()
+	void OnRep_WeaponSwitch();
+
+	UFUNCTION (Server, Reliable)
+	void ServerEquipWeapon(ASWeapon* Weapon);
+	
+	UFUNCTION(Server, Reliable)
+	void ServerSwitchToRifle();
+
+	UFUNCTION(Server, Reliable)
+	void ServerSwitchToPistol();
+	
 	UFUNCTION(Server, Reliable)
 	void ServerZoomIn();
 

@@ -208,12 +208,6 @@ void ASWeapon::PlayImpactEffects(EPhysicalSurface SurfaceType, FVector TraceImpa
 	}
 }
 
-USkeletalMeshComponent* ASWeapon::GetWeaponMesh()
-{
-	return MeshComp;
-}
-
-
 void ASWeapon::PlayWeaponEffects(FVector TracerEndPoint)
 {
 	//spawn muzzle flash if effect is assigned
@@ -245,6 +239,22 @@ void ASWeapon::PlayWeaponEffects(FVector TracerEndPoint)
 	}
 }
 
+
+USkeletalMeshComponent* ASWeapon::GetWeaponMesh()
+{
+	return MeshComp;
+}
+
+void ASWeapon::PlayEquipAudio()
+{
+	UGameplayStatics::PlaySoundAtLocation(this, EquipSound, this->GetActorLocation());
+}
+
+void ASWeapon::PlayUnEquipAudio()
+{
+	UGameplayStatics::PlaySoundAtLocation(this, UnEquipSound, this->GetActorLocation());
+}
+
 //  ------------ Multiplayer Functions ------------  //
 
 //server function - shoot weapon
@@ -273,4 +283,5 @@ void ASWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 
 	//replicate to any client connected (added condition to avoid replicating on client twice as fire code already executes)
 	DOREPLIFETIME_CONDITION(ASWeapon, LineTrace, COND_SkipOwner);
+	
 }
