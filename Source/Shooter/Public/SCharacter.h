@@ -14,6 +14,19 @@ class UAnimMontage;
 class USoundBase;
 class USkeletalMeshComponent;
 
+USTRUCT(BlueprintType)
+struct FWeaponInfo
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	ASWeapon* Weapon;
+
+	UPROPERTY(BlueprintReadOnly)
+	int Ammo;
+};
+
 UCLASS()
 class SHOOTER_API ASCharacter : public ACharacter
 {
@@ -27,28 +40,30 @@ protected:
 
 	//  ------------ Variables ------------  //
 	float DefaultFOV;
+	FTimerHandle Timerhandle_Reload;
+	FTimerHandle TimerHandler_SwitchWeapon;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	FWeaponInfo WeaponInfoStruct;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Weapon")
+	TArray<FWeaponInfo> WeaponStructArray;
 
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponSwitch, BlueprintReadOnly)
 	ASWeapon* CurrentWeapon;
 
 	UPROPERTY(Replicated)
-	ASWeapon* PreviousWeapon;
-
-	FTimerHandle Timerhandle_Reload;
-	FTimerHandle TimerHandler_SwitchWeapon;
-
-	//map to store player ammo for corresponding weapon
-	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
-	TMap<ASWeapon*, int> WeaponAmmoMap;
-
-	UPROPERTY(Replicated)
 	TArray<ASWeapon*> WeaponClassArray;
 
+	//map to store player ammo for corresponding weapon
+	//UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+	//TMap<ASWeapon*, int> WeaponAmmoMap;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Animations")
-	UAnimMontage* ReloadMontage;
+	UAnimMontage* ReloadAnim;
 
 	UPROPERTY(Replicated, EditDefaultsOnly, Category = "Animations")
-	UAnimMontage* SwitchWeapon;
+	UAnimMontage* SwitchWeaponAnim;
 
 	UPROPERTY(Replicated, EditDefaultsOnly, BlueprintReadOnly, Category = "Player")
 	int PlayerRifleAmmo;
@@ -112,6 +127,10 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void InitialiseDefaultWeapons(TSubclassOf<ASWeapon> WeaponClass, int AmmoValue, FName SocketName);
+	void AddWeapon(ASWeapon* Weapon);
+	void SetCurrentWeapon(ASWeapon* NewWeapon, ASWeapon* PreviousWeapon);
+
 	void MoveForward(float value);
 	void MoveRight(float value);
 	void BeginCrouch();
@@ -138,6 +157,7 @@ protected:
 
 	//  ------------ Multiplayer Functions ------------  //
 
+	
 	UFUNCTION(Server, Reliable)
 	void ServerStartReload();
 	
@@ -145,7 +165,7 @@ protected:
 	void ServerReloadWeapon(ASWeapon* EquippedWeapon);
 
 	UFUNCTION()
-	void OnRep_WeaponSwitch();
+	void OnRep_WeaponSwitch(ASWeapon* PreviousWeapon);
 
 	UFUNCTION (Server, Reliable)
 	void ServerEquipWeapon(ASWeapon* Weapon);

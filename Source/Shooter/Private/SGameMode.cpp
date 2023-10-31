@@ -33,9 +33,9 @@ void ASGameMode::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	QueryWaveState();
+	//QueryWaveState();
 
-	ScanForAlivePlayers();
+	//ScanForAlivePlayers();
 }
 
 void ASGameMode::SetEnemyWaveState(EEnemyWaveState NewState)

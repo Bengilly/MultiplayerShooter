@@ -32,7 +32,8 @@ ASWeapon::ASWeapon()
 	HorizontalBulletSpread = 1.0f;
 	VerticalBulletSpread = 1.0f;
 
-	SetReplicates(true);
+	bReplicates = true;
+
 	//reduce impact of latency on weapon object
 	NetUpdateFrequency = 66.0f;
 	MinNetUpdateFrequency = 33.0f;
