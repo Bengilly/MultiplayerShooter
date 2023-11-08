@@ -281,8 +281,7 @@ void ASWeapon::OnRep_LineTrace()
 void ASWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
+	
 	//replicate to any client connected (added condition to avoid replicating on client twice as fire code already executes)
 	DOREPLIFETIME_CONDITION(ASWeapon, LineTrace, COND_SkipOwner);
-	
 }

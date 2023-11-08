@@ -52,6 +52,9 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponSwitch, BlueprintReadOnly)
 	ASWeapon* CurrentWeapon;
 
+	UPROPERTY(ReplicatedUsing = OnRep_StartWeaponSwitch)
+	bool SwitchingWeapon;
+
 	UPROPERTY(Replicated)
 	TArray<ASWeapon*> WeaponClassArray;
 
@@ -143,6 +146,7 @@ protected:
 	void StopSprinting();
 	void StartReload();
 	void StartJumping();
+	bool CanSwitchWeapon();
 
 	UFUNCTION()
 	void ReloadWeapon(ASWeapon* EquippedWeapon);
@@ -157,6 +161,8 @@ protected:
 
 	//  ------------ Multiplayer Functions ------------  //
 
+	UFUNCTION()
+	void OnRep_StartWeaponSwitch();
 	
 	UFUNCTION(Server, Reliable)
 	void ServerStartReload();
