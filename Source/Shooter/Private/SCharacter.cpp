@@ -94,15 +94,16 @@ void ASCharacter::AddWeapon(ASWeapon* Weapon)
 	}
 }
 
+/*	future refactor to avoid duplicate weapon switching code	*/
 void ASCharacter::SwitchToRifle()
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		if (!CanSwitchWeapon()) { return; }
+		if (!CanSwitchWeapon(WeaponClassArray[0])) { return; }
 
 		UE_LOG(LogTemp, Log, TEXT("Rifle Ammo: %s"), *FString::SanitizeFloat(PlayerRifleAmmo));
 
-		SwitchingWeapon = true;
+		SwitchingWeapon = true;		//replicate weaponswitch animation/audio
 		PlayAnimMontage(SwitchWeaponAnim);
 		CurrentWeapon->PlayUnEquipAudio();	//play sound specific to weapon already equipped
 
@@ -113,23 +114,22 @@ void ASCharacter::SwitchToRifle()
 	}
 	else
 	{
-/*		PlayAnimMontage(SwitchWeaponAnim);
-		CurrentWeapon->PlayUnEquipAudio();	*///play sound specific to weapon already equipped
 		ServerSwitchToRifle();
 	}
 }
 
+/*	future refactor to avoid duplicate weapon switching code	*/
 void ASCharacter::SwitchToPistol()
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		if (!CanSwitchWeapon()) { return; }
+		if (!CanSwitchWeapon(WeaponClassArray[1])) { return; }
 
 		UE_LOG(LogTemp, Log, TEXT("Pistol Ammo: %s"), *FString::SanitizeFloat(PlayerPistolAmmo));
 
-		SwitchingWeapon = true;
+		SwitchingWeapon = true;		//replicate weaponswitch animation/audio
 		PlayAnimMontage(SwitchWeaponAnim);
-		CurrentWeapon->PlayUnEquipAudio();	//play sound specific to weapon already equipped
+		CurrentWeapon->PlayUnEquipAudio();		//play sound specific to weapon already equipped
 
 		//start timer to switch weapon
 		FTimerDelegate TimerDel_SwitchToPistol;
@@ -138,8 +138,6 @@ void ASCharacter::SwitchToPistol()
 	}
 	else
 	{
-		//PlayAnimMontage(SwitchWeaponAnim);
-		//CurrentWeapon->PlayUnEquipAudio();	//play sound specific to weapon already equipped
 		ServerSwitchToPistol();
 	}
 }
@@ -169,10 +167,6 @@ void ASCharacter::OnRep_StartWeaponSwitch()
 	{
 		PlayAnimMontage(SwitchWeaponAnim);
 		CurrentWeapon->PlayUnEquipAudio();	//play sound specific to weapon already equipped
-	}
-	else
-	{
-		return;
 	}
 }
 
@@ -208,9 +202,9 @@ void ASCharacter::SetCurrentWeapon(ASWeapon* NewWeapon, ASWeapon* PreviousWeapon
 	NewWeapon->GetWeaponMesh()->SetHiddenInGame(false);
 }
 
-bool ASCharacter::CanSwitchWeapon()
+bool ASCharacter::CanSwitchWeapon(ASWeapon* Weapon)
 {
-	if (!CurrentWeapon || bIsShooting || bIsReloading || bIsZooming)
+	if (!CurrentWeapon || CurrentWeapon==Weapon || bIsShooting || bIsReloading || bIsZooming)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Weapon Switch Blocked"));
 		return false;
@@ -243,6 +237,15 @@ void ASCharacter::StartReload()
 		FTimerDelegate TimerDel;
 		TimerDel.BindUFunction(this, "ReloadWeapon", CurrentWeapon);
 		GetWorld()->GetTimerManager().SetTimer(Timerhandle_Reload, TimerDel, 2.17, false);
+	}
+}
+
+void ASCharacter::OnRep_Reloading()
+{
+	if (bIsReloading)
+	{
+		PlayAnimMontage(ReloadAnim);
+		UGameplayStatics::PlaySoundAtLocation(this, StartReloadSound, this->GetActorLocation());
 	}
 }
 

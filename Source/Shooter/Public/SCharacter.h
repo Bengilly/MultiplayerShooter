@@ -74,7 +74,7 @@ protected:
 	UPROPERTY(Replicated, EditDefaultsOnly, BlueprintReadOnly, Category = "Player")
 	int PlayerPistolAmmo;
 
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
+	UPROPERTY(ReplicatedUsing = OnRep_Reloading, BlueprintReadOnly, Category = "Player")
 	bool bIsReloading;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
@@ -133,6 +133,7 @@ protected:
 	void InitialiseDefaultWeapons(TSubclassOf<ASWeapon> WeaponClass, int AmmoValue, FName SocketName);
 	void AddWeapon(ASWeapon* Weapon);
 	void SetCurrentWeapon(ASWeapon* NewWeapon, ASWeapon* PreviousWeapon);
+	bool CanSwitchWeapon(ASWeapon* Weapon);
 
 	void MoveForward(float value);
 	void MoveRight(float value);
@@ -146,7 +147,8 @@ protected:
 	void StopSprinting();
 	void StartReload();
 	void StartJumping();
-	bool CanSwitchWeapon();
+
+
 
 	UFUNCTION()
 	void ReloadWeapon(ASWeapon* EquippedWeapon);
@@ -160,6 +162,9 @@ protected:
 	void OnHealthChanged(USHealthComponent* CharacterHealthComp, float Health, float HealthDelta, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
 
 	//  ------------ Multiplayer Functions ------------  //
+
+	UFUNCTION()
+	void OnRep_Reloading();
 
 	UFUNCTION()
 	void OnRep_StartWeaponSwitch();
