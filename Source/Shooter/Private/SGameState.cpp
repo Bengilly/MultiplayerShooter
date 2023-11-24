@@ -4,9 +4,6 @@
 #include "SGameState.h"
 #include "Net/UnrealNetwork.h"
 
-
-
-
 //  ------------ Multiplayer Functions ------------  //
 
 void ASGameState::OnRep_WaveState(EEnemyWaveState PreviousState)

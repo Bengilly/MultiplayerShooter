@@ -53,7 +53,7 @@ protected:
 	ASWeapon* CurrentWeapon;
 
 	UPROPERTY(ReplicatedUsing = OnRep_StartWeaponSwitch)
-	bool SwitchingWeapon;
+	bool bIsSwitchingWeapon;
 
 	UPROPERTY(Replicated)
 	TArray<ASWeapon*> WeaponClassArray;

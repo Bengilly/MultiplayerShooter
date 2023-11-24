@@ -101,9 +101,9 @@ void ASCharacter::SwitchToRifle()
 	{
 		if (!CanSwitchWeapon(WeaponClassArray[0])) { return; }
 
-		UE_LOG(LogTemp, Log, TEXT("Rifle Ammo: %s"), *FString::SanitizeFloat(PlayerRifleAmmo));
+		UE_LOG(LogTemp, Log, TEXT("Rifle Ammo: %s"), *FString::SanitizeFloat(WeaponStructArray[0].Ammo));
 
-		SwitchingWeapon = true;		//replicate weaponswitch animation/audio
+		bIsSwitchingWeapon = true;		//replicate weaponswitch animation/audio
 		PlayAnimMontage(SwitchWeaponAnim);
 		CurrentWeapon->PlayUnEquipAudio();	//play sound specific to weapon already equipped
 
@@ -125,9 +125,9 @@ void ASCharacter::SwitchToPistol()
 	{
 		if (!CanSwitchWeapon(WeaponClassArray[1])) { return; }
 
-		UE_LOG(LogTemp, Log, TEXT("Pistol Ammo: %s"), *FString::SanitizeFloat(PlayerPistolAmmo));
+		UE_LOG(LogTemp, Log, TEXT("Pistol Ammo: %s"), *FString::SanitizeFloat(WeaponStructArray[1].Ammo));
 
-		SwitchingWeapon = true;		//replicate weaponswitch animation/audio
+		bIsSwitchingWeapon = true;		//replicate weaponswitch animation/audio
 		PlayAnimMontage(SwitchWeaponAnim);
 		CurrentWeapon->PlayUnEquipAudio();		//play sound specific to weapon already equipped
 
@@ -163,7 +163,7 @@ void ASCharacter::EquipWeapon(ASWeapon* Weapon)
 
 void ASCharacter::OnRep_StartWeaponSwitch()
 {
-	if (SwitchingWeapon)
+	if (bIsSwitchingWeapon)
 	{
 		PlayAnimMontage(SwitchWeaponAnim);
 		CurrentWeapon->PlayUnEquipAudio();	//play sound specific to weapon already equipped
@@ -195,7 +195,7 @@ void ASCharacter::SetCurrentWeapon(ASWeapon* NewWeapon, ASWeapon* PreviousWeapon
 
 	//trigger OnRep_WeaponSwitch to replicate weapon switching to clients
 	CurrentWeapon = NewWeapon;
-	SwitchingWeapon = false;
+	bIsSwitchingWeapon = false;
 
 	NewWeapon->PlayEquipAudio();	//plays sound specific to weapon being equipped
 	NewWeapon->SetOwner(this);
@@ -204,7 +204,7 @@ void ASCharacter::SetCurrentWeapon(ASWeapon* NewWeapon, ASWeapon* PreviousWeapon
 
 bool ASCharacter::CanSwitchWeapon(ASWeapon* Weapon)
 {
-	if (!CurrentWeapon || CurrentWeapon==Weapon || bIsShooting || bIsReloading || bIsZooming)
+	if (!CurrentWeapon || CurrentWeapon==Weapon || bIsShooting || bIsReloading || bIsZooming || bIsSwitchingWeapon)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Weapon Switch Blocked"));
 		return false;
@@ -403,7 +403,7 @@ void ASCharacter::ZoomOut()
 
 void ASCharacter::StartShooting()
 {
-	if (CurrentWeapon && !bIsReloading && !bSprinting)
+	if (CurrentWeapon && !bIsReloading && !bSprinting && !bIsSwitchingWeapon)
 	{
 		bIsShooting = true;
 		CurrentWeapon->StartShooting();
@@ -570,7 +570,7 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASCharacter, WeaponStructArray);
 	
 	DOREPLIFETIME(ASCharacter, SwitchWeaponAnim);
-	DOREPLIFETIME(ASCharacter, SwitchingWeapon);
+	DOREPLIFETIME(ASCharacter, bIsSwitchingWeapon);
 	
 	
 	DOREPLIFETIME_CONDITION(ASCharacter, WeaponClassArray, COND_OwnerOnly);
