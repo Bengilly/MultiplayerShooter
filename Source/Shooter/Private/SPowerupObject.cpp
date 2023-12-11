@@ -12,7 +12,8 @@ ASPowerupObject::ASPowerupObject()
 	TimeBetweenTicks = 0;
 	TotalNumberOfTicks = 0;
 	TickCount = 0;
-	SetReplicates(true);
+	//SetReplicates(true);
+	bReplicates = true;
 	bPowerupActive = false;
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
@@ -31,7 +32,7 @@ void ASPowerupObject::OnEffectTick()
 
 	OnPowerupTicked();
 
-	//effect finishes
+	//effect finishes	
 	if (TickCount >= TotalNumberOfTicks)
 	{
 		OnExpired();

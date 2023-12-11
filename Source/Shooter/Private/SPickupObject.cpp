@@ -48,7 +48,6 @@ void ASPickupObject::NotifyActorBeginOverlap(AActor* OtherActor)
 
 		GetWorldTimerManager().SetTimer(TimerHandle_RespawnTimer, this, &ASPickupObject::SpawnPickup, SpawnCooldown);
 	}
-
 }
 
 void ASPickupObject::SpawnPickup()

@@ -63,6 +63,7 @@ void ASCharacter::BeginPlay()
 	}
 }
 
+//spawn weapons on player
 void ASCharacter::InitialiseDefaultWeapons(TSubclassOf<ASWeapon> WeaponClass, int Ammo, FName SocketName)
 {
 	if (GetLocalRole() < ROLE_Authority)
@@ -210,6 +211,9 @@ bool ASCharacter::CanSwitchWeapon(ASWeapon* Weapon)
 		return false;
 	}
 	else
+	{
+
+	}
 	{
 		return true;
 	}
@@ -562,6 +566,7 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASCharacter, bSprinting);
 	DOREPLIFETIME(ASCharacter, bIsReloading);
 	DOREPLIFETIME(ASCharacter, bIsShooting);
+	DOREPLIFETIME(ASCharacter, bIsSwitchingWeapon);
 
 	DOREPLIFETIME(ASCharacter, PlayerRifleAmmo);
 	DOREPLIFETIME(ASCharacter, PlayerPistolAmmo);
@@ -570,8 +575,6 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASCharacter, WeaponStructArray);
 	
 	DOREPLIFETIME(ASCharacter, SwitchWeaponAnim);
-	DOREPLIFETIME(ASCharacter, bIsSwitchingWeapon);
-	
-	
+
 	DOREPLIFETIME_CONDITION(ASCharacter, WeaponClassArray, COND_OwnerOnly);
 }

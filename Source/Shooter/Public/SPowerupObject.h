@@ -22,6 +22,7 @@ protected:
 
 	//  ------------ Variables ------------  //
 
+	//current tick count
 	int32 TickCount;
 
 	FTimerHandle TimerHandle_PowerupEffectTick;
