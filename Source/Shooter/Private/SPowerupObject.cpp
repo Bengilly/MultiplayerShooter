@@ -41,6 +41,7 @@ void ASPowerupObject::OnEffectTick()
 
 		//delete timer once the effect has finished
 		GetWorldTimerManager().ClearTimer(TimerHandle_PowerupEffectTick);
+		Destroy();
 	}
 }
 
