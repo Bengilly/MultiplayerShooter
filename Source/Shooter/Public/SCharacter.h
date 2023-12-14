@@ -83,6 +83,18 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	bool bSprinting;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player")
+	float MaxStamina;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	float StaminaUsageRate;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	float StaminaRegenRate;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	float CurrentStamina;
+
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	bool bIsShooting;
 

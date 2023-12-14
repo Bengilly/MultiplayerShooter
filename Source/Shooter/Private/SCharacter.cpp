@@ -38,6 +38,11 @@ ASCharacter::ASCharacter()
 
 	RifleAttachSocketName = "Socket_Rifle";
 	PistolAttachSocketName = "Socket_Pistol";
+
+	MaxStamina = 100.0f;
+	CurrentStamina = 100.0f;
+	StaminaRegenRate = 5.0f;
+	StaminaUsageRate = 10.0f;
 }
 
 // Called when the game starts or when spawned
@@ -317,6 +322,17 @@ void ASCharacter::Tick(float DeltaTime)
 	float NewFOV = FMath::FInterpTo(CameraComponent->FieldOfView, TargetFOV, DeltaTime, ZoomInterpSpeed);
 
 	CameraComponent->SetFieldOfView(NewFOV);
+
+	if (bSprinting && CurrentStamina > 0)
+	{
+		//depleting
+		CurrentStamina = FMath::FInterpConstantTo(CurrentStamina, 0.0f, DeltaTime, StaminaUsageRate);
+	}
+	else
+	{
+		//regenerating
+		CurrentStamina = FMath::FInterpConstantTo(CurrentStamina, MaxStamina, DeltaTime, StaminaRegenRate);
+	}
 }
 
 void ASCharacter::MoveForward(float value)
