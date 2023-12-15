@@ -42,7 +42,8 @@ ASCharacter::ASCharacter()
 	MaxStamina = 100.0f;
 	CurrentStamina = 100.0f;
 	StaminaRegenRate = 5.0f;
-	StaminaUsageRate = 10.0f;
+	StaminaUsageRateSprinting = 10.0f;
+	StaminaUsageRateJumping = 2.0f;
 }
 
 // Called when the game starts or when spawned
@@ -323,16 +324,7 @@ void ASCharacter::Tick(float DeltaTime)
 
 	CameraComponent->SetFieldOfView(NewFOV);
 
-	if (bSprinting && CurrentStamina > 0)
-	{
-		//depleting
-		CurrentStamina = FMath::FInterpConstantTo(CurrentStamina, 0.0f, DeltaTime, StaminaUsageRate);
-	}
-	else
-	{
-		//regenerating
-		CurrentStamina = FMath::FInterpConstantTo(CurrentStamina, MaxStamina, DeltaTime, StaminaRegenRate);
-	}
+	UpdateStamina(DeltaTime);
 }
 
 void ASCharacter::MoveForward(float value)
@@ -471,11 +463,38 @@ void ASCharacter::StopSprinting()
 	bSprinting = false;
 }
 
+//handles stamina usage/regen // future work to separate into timers with more control
+void ASCharacter::UpdateStamina(float DeltaTime)
+{
+	if (bSprinting && CurrentStamina > 0)
+	{
+		//depleting
+		CurrentStamina = FMath::FInterpConstantTo(CurrentStamina, 0.0f, DeltaTime, StaminaUsageRateSprinting);
+	}
+	else
+	{
+		//regenerating
+		CurrentStamina = FMath::FInterpConstantTo(CurrentStamina, MaxStamina, DeltaTime, StaminaRegenRate);
+	}
+
+	if (CurrentStamina == 0)
+	{
+		StopSprinting();
+	}
+}
+
 void ASCharacter::StartJumping()
 {
-	if (!bIsZooming)
+	//player can only jump if not currently zooming or jumping
+	if (!bIsZooming && !GetCharacterMovement()->IsFalling())
 	{
-		ACharacter::Jump();
+		if (CurrentStamina > StaminaUsageRateJumping)
+		{
+			//reduce current stamina when jumping
+			CurrentStamina -= StaminaUsageRateJumping;
+			ACharacter::Jump();
+		}
+
 	}
 }
 

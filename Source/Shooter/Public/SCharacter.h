@@ -87,7 +87,10 @@ protected:
 	float MaxStamina;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
-	float StaminaUsageRate;
+	float StaminaUsageRateSprinting;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	float StaminaUsageRateJumping;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	float StaminaRegenRate;
@@ -155,12 +158,12 @@ protected:
 	void ZoomOut();
 	void StartShooting();
 	void StopShooting();
-	void StartSprinting();
-	void StopSprinting();
 	void StartReload();
 	void StartJumping();
 
-
+	void StartSprinting();
+	void StopSprinting();
+	void UpdateStamina(float DeltaTime);
 
 	UFUNCTION()
 	void ReloadWeapon(ASWeapon* EquippedWeapon);
