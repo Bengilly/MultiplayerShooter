@@ -8,12 +8,17 @@
 
 class UCameraComponent;
 class USpringArmComponent;
-class ASWeapon;
-class USHealthComponent;
 class UAnimMontage;
 class USoundBase;
 class USkeletalMeshComponent;
 
+class USHealthComponent;
+class ASWeapon;
+class ASPowerupObject;
+class ASPowerupBase;
+
+
+//weapon struct
 USTRUCT(BlueprintType)
 struct FWeaponInfo
 {
@@ -25,6 +30,18 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	int Ammo;
+};
+
+
+//ability struct
+USTRUCT(BlueprintType)
+struct FAbilityInfo
+{
+	GENERATED_BODY()
+
+public:
+	TSubclassOf<ASPowerupObject> AbilityType;
+	int NumberOfCharges;
 };
 
 UCLASS()
@@ -39,6 +56,7 @@ public:
 protected:
 
 	//  ------------ Variables ------------  //
+
 	float DefaultFOV;
 	FTimerHandle Timerhandle_Reload;
 	FTimerHandle TimerHandler_SwitchWeapon;
@@ -49,18 +67,14 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Weapon")
 	TArray<FWeaponInfo> WeaponStructArray;
 
+	UPROPERTY(Replicated)
+	TArray<ASWeapon*> WeaponClassArray;
+
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponSwitch, BlueprintReadOnly)
 	ASWeapon* CurrentWeapon;
 
 	UPROPERTY(ReplicatedUsing = OnRep_StartWeaponSwitch)
 	bool bIsSwitchingWeapon;
-
-	UPROPERTY(Replicated)
-	TArray<ASWeapon*> WeaponClassArray;
-
-	//map to store player ammo for corresponding weapon
-	//UPROPERTY(BlueprintReadOnly, Category = "Weapon")
-	//TMap<ASWeapon*, int> WeaponAmmoMap;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Animations")
 	UAnimMontage* ReloadAnim;
@@ -131,6 +145,41 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USHealthComponent* HealthComponent;
 
+	//  ------------ Abilities ------------  // 
+
+	void UseAbility();
+	void SelectAbility(ASPowerupBase* Ability);
+	void OnEffectTick();
+	void InitialiseAbility(TSubclassOf<ASPowerupBase> AbilityClass, int Charges);
+	void SwitchNextAbility();
+	void SwitchPreviousAbility();
+
+	UFUNCTION(Server, Reliable)
+	void ServerUseAbility();
+
+	UPROPERTY(Replicated)
+	FAbilityInfo AbilityInfoStruct;
+
+	UPROPERTY(Replicated)
+	TArray<FAbilityInfo> AbilityStructArray;
+
+	//TArray<TSubclassOf<ASPowerupBase>> AbilityArray;
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	TArray<ASPowerupBase*> AbilityArray;
+
+	UPROPERTY(Replicated)
+	int32 AbilityIndex;
+
+	//UPROPERTY(ReplicatedUsing = OnRep_SelectNextAbility, BlueprintReadOnly)
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	ASPowerupBase* SelectedAbility;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TSubclassOf<ASPowerupBase> Invisibility;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TSubclassOf<ASPowerupBase> SpeedBoost;
+
 	//  ------------ Audio ------------  // 
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
@@ -141,11 +190,10 @@ protected:
 
 	//  ------------ Functions ------------  //
 
-
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void InitialiseDefaultWeapons(TSubclassOf<ASWeapon> WeaponClass, int AmmoValue, FName SocketName);
+	void InitialiseWeapon(TSubclassOf<ASWeapon> WeaponClass, int AmmoValue, FName SocketName);
 	void AddWeapon(ASWeapon* Weapon);
 	void SetCurrentWeapon(ASWeapon* NewWeapon, ASWeapon* PreviousWeapon);
 	bool CanSwitchWeapon(ASWeapon* Weapon);
@@ -225,5 +273,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual FVector GetPawnViewLocation() const override;
+
+	void AddPowerupChargeToPlayer(TSubclassOf<ASPowerupObject> PowerupClass, int NumberOfCharges);
 
 };

@@ -8,6 +8,7 @@
 
 class URotatingMovementComponent;
 class UStaticMeshComponent;
+class ASCharacter;
 
 UCLASS()
 class SHOOTER_API ASPowerupObject : public AActor
@@ -22,20 +23,12 @@ protected:
 
 	//  ------------ Variables ------------  //
 
-	//current tick count
-	int32 TickCount;
+	ASCharacter* PlayerCharacter;
 
 	FTimerHandle TimerHandle_PowerupEffectTick;
 
-	UPROPERTY(ReplicatedUsing=OnRep_PowerupActive)
-	bool bPowerupActive;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Powerup")
-	float TimeBetweenTicks;
-
-	//total number of ticks that the powerup lasts for
-	UPROPERTY(EditDefaultsOnly, Category = "Powerup")
-	int32 TotalNumberOfTicks;
+	UPROPERTY(ReplicatedUsing = OnRep_PowerupCollected)
+	bool bPowerupCollected;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	URotatingMovementComponent* RotatingComponent;
@@ -46,18 +39,19 @@ protected:
 
 	//  ------------ Functions ------------  //
 
-	UFUNCTION()
-	void OnEffectTick();
+	//UFUNCTION()
+	//void OnEffectTick();
 
 	UFUNCTION()
-	void OnRep_PowerupActive();
+	void OnRep_PowerupCollected();
 
 	UFUNCTION()
 	void OnPowerupStateChanged(bool bNewStateIsActive);
 
 public:
+	void AddPowerupToPlayer(AActor* PlayerToAddPowerup, TSubclassOf<ASPowerupObject> PowerupClass);
 
-	void ActivatePowerupObject(AActor* PlayerToApplyPowerup);
+	void ActivatePowerup(AActor* PlayerToApplyPowerup);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Powerup")
 	void OnActivated(AActor* PlayerToApplyPowerup);
@@ -67,4 +61,6 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Powerup")
 	void OnPowerupTicked();
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 };

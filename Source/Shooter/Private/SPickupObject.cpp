@@ -22,7 +22,7 @@ ASPickupObject::ASPickupObject()
 	DecalComponent->DecalSize = FVector(64, 60, 60);
 	DecalComponent->SetupAttachment(RootComponent);
 
-	SetReplicates(true);
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned
@@ -36,14 +36,15 @@ void ASPickupObject::BeginPlay()
 	}
 }
 
-void ASPickupObject::NotifyActorBeginOverlap(AActor* OtherActor)
+void ASPickupObject::NotifyActorBeginOverlap(AActor* Player)
 {
-	Super::NotifyActorBeginOverlap(OtherActor);
-	
-	//activate powerup if it has been successfully spawned
+	Super::NotifyActorBeginOverlap(Player);
+
+	//add powerup to player if it has been successfully spawned
 	if (PowerupInstance && GetLocalRole() == ROLE_Authority)
 	{
-		PowerupInstance->ActivatePowerupObject(OtherActor);
+		//PowerupInstance->ActivatePowerup(Player);
+		PowerupInstance->AddPowerupToPlayer(Player, PowerupClass);
 		PowerupInstance = nullptr;
 
 		GetWorldTimerManager().SetTimer(TimerHandle_RespawnTimer, this, &ASPickupObject::SpawnPickup, SpawnCooldown);

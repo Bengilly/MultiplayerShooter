@@ -15,6 +15,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "Logging/StructuredLog.h"
+#include "SPowerupObject.h"
+#include "SPowerupBase.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -43,7 +45,13 @@ ASCharacter::ASCharacter()
 	CurrentStamina = 100.0f;
 	StaminaRegenRate = 5.0f;
 	StaminaUsageRateSprinting = 10.0f;
-	StaminaUsageRateJumping = 2.0f;
+	StaminaUsageRateJumping = 20.0f;
+
+	AbilityInfoStruct.AbilityType = nullptr;
+	AbilityInfoStruct.NumberOfCharges = 0;
+
+	AbilityIndex = 0;
+	//SelectedAbility = nullptr;
 }
 
 // Called when the game starts or when spawned
@@ -58,19 +66,24 @@ void ASCharacter::BeginPlay()
 	//initialise player weapons on the server
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		InitialiseDefaultWeapons(RifleWeaponClass, PlayerRifleAmmo, RifleAttachSocketName);
-		InitialiseDefaultWeapons(PistolWeaponClass, PlayerPistolAmmo, PistolAttachSocketName);
+		InitialiseWeapon(RifleWeaponClass, PlayerRifleAmmo, RifleAttachSocketName);
+		InitialiseWeapon(PistolWeaponClass, PlayerPistolAmmo, PistolAttachSocketName);
 
 		if (WeaponStructArray.Num() > 0)
 		{
 			//equip rifle by default
 			EquipWeapon(WeaponStructArray[0].Weapon);
 		}
+
+		InitialiseAbility(Invisibility, 0);
+		InitialiseAbility(SpeedBoost, 0);
 	}
+
+
 }
 
 //spawn weapons on player
-void ASCharacter::InitialiseDefaultWeapons(TSubclassOf<ASWeapon> WeaponClass, int Ammo, FName SocketName)
+void ASCharacter::InitialiseWeapon(TSubclassOf<ASWeapon> WeaponClass, int Ammo, FName SocketName)
 {
 	if (GetLocalRole() < ROLE_Authority)
 	{
@@ -218,9 +231,6 @@ bool ASCharacter::CanSwitchWeapon(ASWeapon* Weapon)
 	}
 	else
 	{
-
-	}
-	{
 		return true;
 	}
 }
@@ -310,6 +320,93 @@ void ASCharacter::OnHealthChanged(USHealthComponent* CharacterHealthComp, float 
 
 		SetLifeSpan(10.0f);
 	}
+}
+
+//  ------------ Ability Functions ------------  //
+
+void ASCharacter::AddPowerupChargeToPlayer(TSubclassOf<ASPowerupObject> Powerup, int Charges)
+{
+	if (!Powerup)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Powerup object is null"));
+		return;
+	}
+	
+	//if (AbilityArray.Contains(Powerup))
+	//{
+		for (int i = 0; i < AbilityStructArray.Num(); i++)
+		{
+			if (AbilityStructArray[i].AbilityType == Powerup)
+			{
+				AbilityStructArray[i].NumberOfCharges += Charges;
+		
+				FString ClassName = Powerup->GetName();
+				UE_LOG(LogTemp, Log, TEXT("Powerup: %s"), *ClassName);
+				UE_LOG(LogTemp, Log, TEXT("Total charges: %d"), AbilityStructArray[i].NumberOfCharges);
+			}
+		}
+	//}
+}
+
+void ASCharacter::InitialiseAbility(TSubclassOf<ASPowerupBase> AbilityClass, int Charges)
+{
+	ASPowerupBase* Ability = GetWorld()->SpawnActor<ASPowerupBase>(AbilityClass);
+
+	AbilityInfoStruct.AbilityType = AbilityClass;
+	AbilityInfoStruct.NumberOfCharges = Charges;
+	AbilityStructArray.Add(AbilityInfoStruct);
+
+	AbilityArray.AddUnique(Ability);
+}
+
+void ASCharacter::UseAbility()
+{
+	UE_LOG(LogTemp, Log, TEXT("Trying to use ability..."));
+
+	if (SelectedAbility)
+	{
+		FString ClassName = SelectedAbility->GetName();
+		UE_LOG(LogTemp, Log, TEXT("Ability Used: %s"), *ClassName);
+
+		SelectedAbility->ActivateAbility(this);
+	}
+}
+
+void ASCharacter::SwitchNextAbility()
+{
+	UE_LOG(LogTemp, Log, TEXT("Switching Ability"))
+
+	if (AbilityArray.Num() > AbilityIndex + 1)
+	{
+		++AbilityIndex;
+
+		if (ASPowerupBase* NextAbility = AbilityArray[AbilityIndex])
+		{
+			UE_LOG(LogTemp, Log, TEXT("Attempting to select ability"));
+			SelectedAbility = NextAbility;
+		}
+	}
+}
+
+void ASCharacter::SwitchPreviousAbility()
+{
+	UE_LOG(LogTemp, Log, TEXT("Switching Ability"))
+
+	if (AbilityIndex - 1 >= 0)
+	{
+		--AbilityIndex;
+
+		if (ASPowerupBase* NextAbility = AbilityArray[AbilityIndex])
+		{
+			UE_LOG(LogTemp, Log, TEXT("Attempting to select ability"));
+			SelectedAbility = NextAbility;
+		}
+	}
+}
+
+void ASCharacter::ServerUseAbility_Implementation()
+{
+	UseAbility();
 }
 
 // Called every frame
@@ -494,7 +591,6 @@ void ASCharacter::StartJumping()
 			CurrentStamina -= StaminaUsageRateJumping;
 			ACharacter::Jump();
 		}
-
 	}
 }
 
@@ -527,6 +623,13 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	
 	PlayerInputComponent->BindAction("EquipRifle", IE_Pressed, this, &ASCharacter::SwitchToRifle);
 	PlayerInputComponent->BindAction("EquipPistol", IE_Pressed, this, &ASCharacter::SwitchToPistol);
+
+	PlayerInputComponent->BindAction("UseAbility", IE_Pressed, this, &ASCharacter::UseAbility);
+	PlayerInputComponent->BindAction("SwitchNextAbility", IE_Pressed, this, &ASCharacter::SwitchNextAbility);
+	PlayerInputComponent->BindAction("SwitchPreviousAbility", IE_Pressed, this, &ASCharacter::SwitchPreviousAbility);
+
+	//PlayerInputComponent->BindAction<FUseAbilityDelegate>("UseAbility", IE_Pressed, this, &ASCharacter::UseAbility, Ability);
+	
 }
 
 //setup line trace from camera
@@ -595,6 +698,12 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	//replicate variables
 	DOREPLIFETIME(ASCharacter, CurrentWeapon);
 	//DOREPLIFETIME(ASCharacter, PreviousWeapon);
+
+	DOREPLIFETIME(ASCharacter, SelectedAbility);
+	DOREPLIFETIME(ASCharacter, AbilityInfoStruct);
+	DOREPLIFETIME(ASCharacter, AbilityStructArray);
+	DOREPLIFETIME(ASCharacter, AbilityArray);
+	DOREPLIFETIME(ASCharacter, AbilityIndex);
 
 	DOREPLIFETIME(ASCharacter, bPlayerDied);
 	DOREPLIFETIME(ASCharacter, bIsZooming);

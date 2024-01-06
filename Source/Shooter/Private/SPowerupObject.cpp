@@ -4,17 +4,15 @@
 #include "SPowerupObject.h"
 #include "GameFramework/RotatingMovementComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "SCharacter.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
 ASPowerupObject::ASPowerupObject()
 {
-	TimeBetweenTicks = 0;
-	TotalNumberOfTicks = 0;
-	TickCount = 0;
-	//SetReplicates(true);
 	bReplicates = true;
-	bPowerupActive = false;
+	//bPowerupActive = false;
+	bPowerupCollected = false;
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 50.0f));
@@ -26,42 +24,17 @@ ASPowerupObject::ASPowerupObject()
 	RotatingComponent->RotationRate.Yaw = 180.0f;
 }
 
-void ASPowerupObject::OnEffectTick()
+
+void ASPowerupObject::AddPowerupToPlayer(AActor* Player, TSubclassOf<ASPowerupObject> PowerupClass)
 {
-	TickCount++;
+	int ChargesToAdd = 1;
 
-	OnPowerupTicked();
+	PlayerCharacter = Cast<ASCharacter>(Player);
+	PlayerCharacter->AddPowerupChargeToPlayer(PowerupClass, ChargesToAdd);
 
-	//effect finishes	
-	if (TickCount >= TotalNumberOfTicks)
-	{
-		OnExpired();
-		bPowerupActive = false;
-		OnRep_PowerupActive();
-
-		//delete timer once the effect has finished
-		GetWorldTimerManager().ClearTimer(TimerHandle_PowerupEffectTick);
-		Destroy();
-	}
-}
-
-//only activate powerup once picked
-void ASPowerupObject::ActivatePowerupObject(AActor* PlayerToApplyPowerup)
-{
-	OnActivated(PlayerToApplyPowerup);
-
-	//call onreplication on the server as this was only being called by the clients
-	bPowerupActive = true;
-	OnRep_PowerupActive();
-
-	if (TimeBetweenTicks > 0.0f)
-	{
-		GetWorldTimerManager().SetTimer(TimerHandle_PowerupEffectTick, this, &ASPowerupObject::OnEffectTick, TimeBetweenTicks, true);
-	}
-	else
-	{
-		OnEffectTick();
-	}
+	bPowerupCollected = true;
+	OnRep_PowerupCollected();
+	Destroy();
 }
 
 void ASPowerupObject::OnPowerupStateChanged(bool bNewStateIsActive)
@@ -76,14 +49,15 @@ void ASPowerupObject::OnPowerupStateChanged(bool bNewStateIsActive)
 	}
 }
 
-void ASPowerupObject::OnRep_PowerupActive()
+void ASPowerupObject::OnRep_PowerupCollected()
 {
-	OnPowerupStateChanged(bPowerupActive);
+	OnPowerupStateChanged(bPowerupCollected);
 }
 
 void ASPowerupObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ASPowerupObject, bPowerupActive);
+	DOREPLIFETIME(ASPowerupObject, bPowerupCollected);
 }
+
