@@ -13,70 +13,55 @@ ASPowerupBase::ASPowerupBase()
 
 	bReplicates = true;
 
-	bAbilityActive = false;
+	//bIsAbilityActive = false;
 }
 
-void ASPowerupBase::OnEffectTick()
+//only activate powerup once picked
+void ASPowerupBase::ActivateAbility(AActor* PlayerToApplyAbilityTo)
+{
+	UE_LOG(LogTemp, Log, TEXT("Ability Activated to: %s"), *FString(PlayerToApplyAbilityTo->GetName()));
+	UE_LOG(LogTemp, Log, TEXT("Powerup Activated: %s"), *FString(this->GetName()));
+
+	OnAbilityActivated(PlayerToApplyAbilityTo);
+
+	bIsAbilityActive = true;
+	//OnRep_AbilityActive();
+
+	if (TimeBetweenTicks > 0.0f)
+	{
+		GetWorldTimerManager().SetTimer(TimerHandle_PowerupEffectTick, this, &ASPowerupBase::OnAbilityTick, TimeBetweenTicks, true);
+	}
+	else
+	{
+		OnAbilityTick();
+	}
+}
+
+void ASPowerupBase::OnAbilityTick()
 {
 	TickCount++;
-
-	//OnPowerupTicked();
 
 	//effect finishes	
 	if (TickCount >= TotalNumberOfTicks)
 	{
-		OnExpired();
+		OnAbilityExpired();
 
-		bAbilityActive = false;
-		UE_LOG(LogTemp, Log, TEXT("Powerup Deactivated"));
-
-		OnRep_AbilityActive();
+		bIsAbilityActive = false;
+		//OnRep_AbilityActive();
 
 		//delete timer once the effect has finished
 		GetWorldTimerManager().ClearTimer(TimerHandle_PowerupEffectTick);
 	}
 }
 
-//only activate powerup once picked
-void ASPowerupBase::ActivateAbility(AActor* PlayerToApplyPowerup)
-{
-	if (GetLocalRole() == ROLE_Authority)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Powerup Activated"));
-
-		OnActivated(PlayerToApplyPowerup);
-
-		bAbilityActive = true;
-		OnRep_AbilityActive();
-
-		if (TimeBetweenTicks > 0.0f)
-		{
-			GetWorldTimerManager().SetTimer(TimerHandle_PowerupEffectTick, this, &ASPowerupBase::OnEffectTick, TimeBetweenTicks, true);
-		}
-		else
-		{
-			OnEffectTick();
-		}
-	}
-	else
-	{
-		ServerActivateAbility(PlayerToApplyPowerup);
-	}
-}
-
 void ASPowerupBase::OnRep_AbilityActive()
 {
-	OnAbilityStateChanged(bAbilityActive);
+	OnAbilityStateChanged(bIsAbilityActive);
 }
 
 void ASPowerupBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ASPowerupBase, bAbilityActive);
-}
-
-void ASPowerupBase::ServerActivateAbility_Implementation(AActor* PlayerToApplyPowerup)
-{
-	ActivateAbility(PlayerToApplyPowerup);
+	DOREPLIFETIME(ASPowerupBase, bIsAbilityActive);	
 }

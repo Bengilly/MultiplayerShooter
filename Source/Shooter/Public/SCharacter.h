@@ -40,7 +40,13 @@ struct FAbilityInfo
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(BlueprintReadOnly)
+	ASPowerupBase* Ability;
+
+	UPROPERTY(BlueprintReadOnly)
 	TSubclassOf<ASPowerupObject> AbilityType;
+
+	UPROPERTY(BlueprintReadOnly)
 	int NumberOfCharges;
 };
 
@@ -70,7 +76,7 @@ protected:
 	UPROPERTY(Replicated)
 	TArray<ASWeapon*> WeaponClassArray;
 
-	UPROPERTY(ReplicatedUsing = OnRep_WeaponSwitch, BlueprintReadOnly)
+	UPROPERTY(ReplicatedUsing = OnRep_ChangeCurrentWeapon, BlueprintReadOnly)
 	ASWeapon* CurrentWeapon;
 
 	UPROPERTY(ReplicatedUsing = OnRep_StartWeaponSwitch)
@@ -147,38 +153,57 @@ protected:
 
 	//  ------------ Abilities ------------  // 
 
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	FAbilityInfo AbilityInfoStruct;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	TArray<FAbilityInfo> AbilityStructArray;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	TArray<ASPowerupBase*> AbilityClassArray;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	int32 AbilityIndex;
+
+	UPROPERTY(ReplicatedUsing= OnRep_ChangeAbility, BlueprintReadOnly)
+	ASPowerupBase* SelectedAbility;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TSubclassOf<ASPowerupBase> InvisibilityClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TSubclassOf<ASPowerupBase> SpeedBoostClass;
+
 	void UseAbility();
 	void SelectAbility(ASPowerupBase* Ability);
 	void OnEffectTick();
 	void InitialiseAbility(TSubclassOf<ASPowerupBase> AbilityClass, int Charges);
+	void AddAbility(ASPowerupBase* Ability);
 	void SwitchNextAbility();
 	void SwitchPreviousAbility();
+	void SetDefaultAbility();
 
 	UFUNCTION(Server, Reliable)
 	void ServerUseAbility();
 
-	UPROPERTY(Replicated)
-	FAbilityInfo AbilityInfoStruct;
+	UFUNCTION(Server, Reliable)
+	void ServerSwitchNextAbility();
 
-	UPROPERTY(Replicated)
-	TArray<FAbilityInfo> AbilityStructArray;
+	UFUNCTION(Server, Reliable)
+	void ServerSwitchPreviousAbility();
 
-	//TArray<TSubclassOf<ASPowerupBase>> AbilityArray;
-	UPROPERTY(Replicated, BlueprintReadOnly)
-	TArray<ASPowerupBase*> AbilityArray;
+	UFUNCTION(Server, Reliable)
+	void ServerEquipAbility(ASPowerupBase* NewSelectedAbility);
 
-	UPROPERTY(Replicated)
-	int32 AbilityIndex;
+	UFUNCTION()
+	void OnRep_ChangeAbility();
 
-	//UPROPERTY(ReplicatedUsing = OnRep_SelectNextAbility, BlueprintReadOnly)
-	UPROPERTY(Replicated, BlueprintReadOnly)
-	ASPowerupBase* SelectedAbility;
+	void SetCurrentAbility(ASPowerupBase* NewSelectedAbility);
 
-	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
-	TSubclassOf<ASPowerupBase> Invisibility;
+	UFUNCTION()
+	void EquipAbility(ASPowerupBase* NewSelectedAbility);
 
-	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
-	TSubclassOf<ASPowerupBase> SpeedBoost;
+
 
 	//  ------------ Audio ------------  // 
 
@@ -239,7 +264,7 @@ protected:
 	void ServerReloadWeapon(ASWeapon* EquippedWeapon);
 
 	UFUNCTION()
-	void OnRep_WeaponSwitch(ASWeapon* PreviousWeapon);
+	void OnRep_ChangeCurrentWeapon(ASWeapon* PreviousWeapon);
 
 	UFUNCTION (Server, Reliable)
 	void ServerEquipWeapon(ASWeapon* Weapon);

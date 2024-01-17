@@ -47,9 +47,6 @@ ASCharacter::ASCharacter()
 	StaminaUsageRateSprinting = 10.0f;
 	StaminaUsageRateJumping = 20.0f;
 
-	AbilityInfoStruct.AbilityType = nullptr;
-	AbilityInfoStruct.NumberOfCharges = 0;
-
 	AbilityIndex = 0;
 	//SelectedAbility = nullptr;
 }
@@ -68,17 +65,19 @@ void ASCharacter::BeginPlay()
 	{
 		InitialiseWeapon(RifleWeaponClass, PlayerRifleAmmo, RifleAttachSocketName);
 		InitialiseWeapon(PistolWeaponClass, PlayerPistolAmmo, PistolAttachSocketName);
-
 		if (WeaponStructArray.Num() > 0)
 		{
 			//equip rifle by default
 			EquipWeapon(WeaponStructArray[0].Weapon);
 		}
 
-		InitialiseAbility(Invisibility, 0);
-		InitialiseAbility(SpeedBoost, 0);
+		InitialiseAbility(InvisibilityClass, 5);
+		InitialiseAbility(SpeedBoostClass, 5);
+		if (AbilityStructArray.Num() > 0)
+		{
+			EquipAbility(AbilityStructArray[0].Ability);
+		}
 	}
-
 
 }
 
@@ -95,6 +94,7 @@ void ASCharacter::InitialiseWeapon(TSubclassOf<ASWeapon> WeaponClass, int Ammo, 
 
 	ASWeapon* Weapon = GetWorld()->SpawnActor<ASWeapon>(WeaponClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+
 	//WeaponAmmoMap.Add(Weapon, Ammo);
 
 	WeaponInfoStruct.Weapon = Weapon;
@@ -165,12 +165,12 @@ void ASCharacter::SwitchToPistol()
 void ASCharacter::EquipWeapon(ASWeapon* Weapon)
 {
 	///* add function to start timer before switching meshes to sync up with client animation */
-
+	//ensure the weapon is set by the server
 	if (Weapon)
 	{
 		if (GetLocalRole() == ROLE_Authority)
 		{
-			SetCurrentWeapon(Weapon, CurrentWeapon);
+			SetCurrentWeapon(Weapon, CurrentWeapon);		//pass in the new weapon to equip and previously equiped weapon
 		}
 		else
 		{
@@ -190,7 +190,7 @@ void ASCharacter::OnRep_StartWeaponSwitch()
 	}
 }
 
-void ASCharacter::OnRep_WeaponSwitch(ASWeapon* PreviousWeapon)
+void ASCharacter::OnRep_ChangeCurrentWeapon(ASWeapon* PreviousWeapon)
 {
 	SetCurrentWeapon(CurrentWeapon, PreviousWeapon);
 }
@@ -299,11 +299,9 @@ void ASCharacter::ReloadWeapon(ASWeapon* EquippedWeapon)
 				EquippedWeapon->Reload(Ammo);
 				Ammo = 0;
 			}
-
 			WeaponStructArray[i].Ammo = Ammo;
 		}
 	}
-
 	bIsReloading = false;
 }
 
@@ -341,7 +339,7 @@ void ASCharacter::AddPowerupChargeToPlayer(TSubclassOf<ASPowerupObject> Powerup,
 				AbilityStructArray[i].NumberOfCharges += Charges;
 		
 				FString ClassName = Powerup->GetName();
-				UE_LOG(LogTemp, Log, TEXT("Powerup: %s"), *ClassName);
+				UE_LOG(LogTemp, Log, TEXT("Ability: %s"), *ClassName);
 				UE_LOG(LogTemp, Log, TEXT("Total charges: %d"), AbilityStructArray[i].NumberOfCharges);
 			}
 		}
@@ -350,56 +348,148 @@ void ASCharacter::AddPowerupChargeToPlayer(TSubclassOf<ASPowerupObject> Powerup,
 
 void ASCharacter::InitialiseAbility(TSubclassOf<ASPowerupBase> AbilityClass, int Charges)
 {
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		return;
+	}
+
 	ASPowerupBase* Ability = GetWorld()->SpawnActor<ASPowerupBase>(AbilityClass);
+	Ability->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
-	AbilityInfoStruct.AbilityType = AbilityClass;
-	AbilityInfoStruct.NumberOfCharges = Charges;
-	AbilityStructArray.Add(AbilityInfoStruct);
+	if (Ability)
+	{
+		AbilityInfoStruct.Ability = Ability;
+		AbilityInfoStruct.AbilityType = AbilityClass;
+		AbilityInfoStruct.NumberOfCharges = Charges;
 
-	AbilityArray.AddUnique(Ability);
+		AbilityInfoStruct.Ability->SetOwner(this);
+		AbilityStructArray.Add(AbilityInfoStruct);
+
+		UE_LOG(LogTemp, Log, TEXT("Ability Initialised: %s"), *FString(AbilityInfoStruct.Ability->GetName()));
+		UE_LOG(LogTemp, Log, TEXT("Ability Charges: %d"), AbilityInfoStruct.NumberOfCharges);		
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Ability Class is null"));
+	}
 }
+
+//void ASCharacter::AddAbility(ASPowerupBase* Ability)
+//{
+//	if (Ability && GetLocalRole() == ROLE_Authority)
+//	{
+//		Ability->SetOwner(this);
+//		AbilityClassArray.AddUnique(Ability);
+//	}
+//}
 
 void ASCharacter::UseAbility()
 {
-	UE_LOG(LogTemp, Log, TEXT("Trying to use ability..."));
-
-	if (SelectedAbility)
+	if (GetLocalRole() == ROLE_Authority)
 	{
-		FString ClassName = SelectedAbility->GetName();
-		UE_LOG(LogTemp, Log, TEXT("Ability Used: %s"), *ClassName);
+		UE_LOG(LogTemp, Log, TEXT("Trying to use ability..."));
 
-		SelectedAbility->ActivateAbility(this);
+		//check to see what ability is being used and subtract charge 
+		if (SelectedAbility)
+		{
+			for (int i = 0; i < AbilityStructArray.Num(); i++)
+			{
+				if (SelectedAbility == AbilityStructArray[i].Ability && AbilityStructArray[i].NumberOfCharges > 0)
+				{
+					AbilityStructArray[i].Ability->ActivateAbility(this);
+					AbilityStructArray[i].NumberOfCharges -= 1;
+				}
+			}
+		}
+		
+	}
+	else
+	{
+		ServerUseAbility();
 	}
 }
 
 void ASCharacter::SwitchNextAbility()
 {
-	UE_LOG(LogTemp, Log, TEXT("Switching Ability"))
-
-	if (AbilityArray.Num() > AbilityIndex + 1)
+	if (GetLocalRole() == ROLE_Authority)
 	{
-		++AbilityIndex;
+		UE_LOG(LogTemp, Log, TEXT("Switching Ability"))
 
-		if (ASPowerupBase* NextAbility = AbilityArray[AbilityIndex])
+		if (AbilityStructArray.Num() > AbilityIndex + 1)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Attempting to select ability"));
-			SelectedAbility = NextAbility;
+			++AbilityIndex;
+
+			if (ASPowerupBase* NextAbility = AbilityStructArray[AbilityIndex].Ability) //need this?
+			{
+				UE_LOG(LogTemp, Log, TEXT("Attempting to select ability..."));
+
+				EquipAbility(AbilityStructArray[AbilityIndex].Ability);
+				//SelectedAbility = AbilityStructArray[AbilityIndex].Ability;		//need to replicate to clients??
+
+				UE_LOG(LogTemp, Log, TEXT("Ability selected: %s"), *FString(SelectedAbility->GetName()));
+
+			}
 		}
+	}
+	else
+	{
+		ServerSwitchNextAbility();
 	}
 }
 
 void ASCharacter::SwitchPreviousAbility()
 {
-	UE_LOG(LogTemp, Log, TEXT("Switching Ability"))
-
-	if (AbilityIndex - 1 >= 0)
+	if (GetLocalRole() == ROLE_Authority)
 	{
-		--AbilityIndex;
+		UE_LOG(LogTemp, Log, TEXT("Switching Ability"))
 
-		if (ASPowerupBase* NextAbility = AbilityArray[AbilityIndex])
+		if (AbilityIndex - 1 >= 0)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Attempting to select ability"));
-			SelectedAbility = NextAbility;
+			--AbilityIndex;
+
+			if (ASPowerupBase* NextAbility = AbilityStructArray[AbilityIndex].Ability)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Attempting to select ability..."));
+
+				EquipAbility(AbilityStructArray[AbilityIndex].Ability);
+				//SelectedAbility = AbilityStructArray[AbilityIndex].Ability;
+
+				UE_LOG(LogTemp, Log, TEXT("Ability selected: %s"), *FString(SelectedAbility->GetName()));
+
+			}
+		}
+	}
+	else
+	{
+		ServerSwitchPreviousAbility();
+	}
+}
+
+void ASCharacter::OnRep_ChangeAbility()
+{
+	SetCurrentAbility(SelectedAbility);
+}
+
+void ASCharacter::SetCurrentAbility(ASPowerupBase* NewSelectedAbility)
+{
+	SelectedAbility = NewSelectedAbility;
+	//SelectedAbility->SetOwner(this);
+}
+
+void ASCharacter::EquipAbility(ASPowerupBase* NewSelectedAbility)
+{
+	///* add function to start timer before switching meshes to sync up with client animation */
+
+	//ensure the weapon is set by the server
+	if (NewSelectedAbility)
+	{
+		if (GetLocalRole() == ROLE_Authority)
+		{
+			SetCurrentAbility(NewSelectedAbility);		//pass in the new weapon to equip and previously equiped weapon
+		}
+		else
+		{
+			ServerEquipAbility(NewSelectedAbility);
 		}
 	}
 }
@@ -407,6 +497,18 @@ void ASCharacter::SwitchPreviousAbility()
 void ASCharacter::ServerUseAbility_Implementation()
 {
 	UseAbility();
+}
+void ASCharacter::ServerSwitchNextAbility_Implementation()
+{
+	SwitchNextAbility();
+}
+void ASCharacter::ServerSwitchPreviousAbility_Implementation()
+{
+	SwitchPreviousAbility();
+}
+void ASCharacter::ServerEquipAbility_Implementation(ASPowerupBase* NewSelectedAbility)
+{
+	EquipAbility(NewSelectedAbility);
 }
 
 // Called every frame
@@ -697,13 +799,13 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 	//replicate variables
 	DOREPLIFETIME(ASCharacter, CurrentWeapon);
-	//DOREPLIFETIME(ASCharacter, PreviousWeapon);
-
 	DOREPLIFETIME(ASCharacter, SelectedAbility);
 	DOREPLIFETIME(ASCharacter, AbilityInfoStruct);
 	DOREPLIFETIME(ASCharacter, AbilityStructArray);
-	DOREPLIFETIME(ASCharacter, AbilityArray);
-	DOREPLIFETIME(ASCharacter, AbilityIndex);
+
+	//DOREPLIFETIME(ASCharacter, AbilityIndex);
+	//DOREPLIFETIME(ASCharacter, AbilityClassArray);
+	//DOREPLIFETIME_CONDITION(ASCharacter, AbilityClassArray, COND_OwnerOnly);
 
 	DOREPLIFETIME(ASCharacter, bPlayerDied);
 	DOREPLIFETIME(ASCharacter, bIsZooming);
@@ -720,5 +822,6 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	
 	DOREPLIFETIME(ASCharacter, SwitchWeaponAnim);
 
-	DOREPLIFETIME_CONDITION(ASCharacter, WeaponClassArray, COND_OwnerOnly);
+	//DOREPLIFETIME_CONDITION(ASCharacter, WeaponClassArray, COND_OwnerOnly);
+	DOREPLIFETIME(ASCharacter, WeaponClassArray);
 }

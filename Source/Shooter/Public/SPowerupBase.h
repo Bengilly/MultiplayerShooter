@@ -15,12 +15,12 @@ public:
 	// Sets default values for this actor's properties
 	ASPowerupBase();
 
-	void ActivateAbility(AActor* PlayerToApplyPowerup);
+	void ActivateAbility(AActor* PlayerToApplyAbilityTo);
 
 protected:
 
 	UPROPERTY(ReplicatedUsing=OnRep_AbilityActive)
-	bool bAbilityActive;
+	bool bIsAbilityActive;
 
 	//current tick count
 	int32 TickCount;
@@ -34,13 +34,13 @@ protected:
 
 	FTimerHandle TimerHandle_PowerupEffectTick;
 
-	void OnEffectTick();
+	void OnAbilityTick();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Powerup")
-	void OnActivated(AActor* PlayerToApplyPowerup);
+	void OnAbilityActivated(AActor* PlayerToApplyPowerup);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Powerup")
-	void OnExpired();
+	void OnAbilityExpired();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Powerup")
 	void OnAbilityStateChanged(bool bIsInvisible);
@@ -49,8 +49,5 @@ protected:
 	void OnRep_AbilityActive();
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
-
-	UFUNCTION(Server, Reliable)
-	void ServerActivateAbility(AActor* PlayerToApplyPowerup);
 
 };
