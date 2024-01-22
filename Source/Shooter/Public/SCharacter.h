@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "SEnumAbilityPickup.h"
 #include "SCharacter.generated.h"
+
 
 class UCameraComponent;
 class USpringArmComponent;
@@ -41,10 +43,13 @@ struct FAbilityInfo
 
 public:
 	UPROPERTY(BlueprintReadOnly)
-	ASPowerupBase* Ability;
+	ASPowerupBase* AbilityInstance;
 
-	UPROPERTY(BlueprintReadOnly)
-	TSubclassOf<ASPowerupObject> AbilityType;
+	//UPROPERTY(BlueprintReadOnly)
+	//TSubclassOf<ASPowerupBase> AbilityType;
+
+	UPROPERTY()
+	EAbilityPickupType AbilityEnum;
 
 	UPROPERTY(BlueprintReadOnly)
 	int NumberOfCharges;
@@ -174,14 +179,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TSubclassOf<ASPowerupBase> SpeedBoostClass;
 
+	void InitialiseAbility(EAbilityPickupType PickupType, TSubclassOf<ASPowerupBase> AbilityClass, int Charges);
 	void UseAbility();
-	void SelectAbility(ASPowerupBase* Ability);
-	void OnEffectTick();
-	void InitialiseAbility(TSubclassOf<ASPowerupBase> AbilityClass, int Charges);
-	void AddAbility(ASPowerupBase* Ability);
 	void SwitchNextAbility();
 	void SwitchPreviousAbility();
-	void SetDefaultAbility();
+	void SetCurrentAbility(ASPowerupBase* NewSelectedAbility);
+
+	UFUNCTION()
+	void OnRep_ChangeAbility();
+
+	UFUNCTION()
+	void EquipAbility(ASPowerupBase* NewSelectedAbility);
 
 	UFUNCTION(Server, Reliable)
 	void ServerUseAbility();
@@ -195,14 +203,8 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerEquipAbility(ASPowerupBase* NewSelectedAbility);
 
-	UFUNCTION()
-	void OnRep_ChangeAbility();
-
-	void SetCurrentAbility(ASPowerupBase* NewSelectedAbility);
-
-	UFUNCTION()
-	void EquipAbility(ASPowerupBase* NewSelectedAbility);
-
+	UFUNCTION(Server, Reliable)
+	void ServerAddPowerupChargeToPlayer(EAbilityPickupType PickupType, int Charges);
 
 
 	//  ------------ Audio ------------  // 
@@ -299,6 +301,6 @@ public:
 
 	virtual FVector GetPawnViewLocation() const override;
 
-	void AddPowerupChargeToPlayer(TSubclassOf<ASPowerupObject> PowerupClass, int NumberOfCharges);
+	void AddPowerupChargeToPlayer(EAbilityPickupType PickupType, int NumberOfCharges);
 
 };

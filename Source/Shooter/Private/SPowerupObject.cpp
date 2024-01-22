@@ -11,8 +11,8 @@
 ASPowerupObject::ASPowerupObject()
 {
 	bReplicates = true;
-	//bPowerupActive = false;
-	bPowerupCollected = false;
+
+	bAbilityCollected = false;
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 50.0f));
@@ -25,19 +25,30 @@ ASPowerupObject::ASPowerupObject()
 }
 
 
-void ASPowerupObject::AddPowerupToPlayer(AActor* Player, TSubclassOf<ASPowerupObject> PowerupClass)
+void ASPowerupObject::AddPowerupToPlayer(AActor* Player)
 {
 	int ChargesToAdd = 1;
-
 	PlayerCharacter = Cast<ASCharacter>(Player);
-	PlayerCharacter->AddPowerupChargeToPlayer(PowerupClass, ChargesToAdd);
+	PlayerCharacter->AddPowerupChargeToPlayer(AbilityPickupType, ChargesToAdd);
 
-	bPowerupCollected = true;
-	OnRep_PowerupCollected();
+	bAbilityCollected = true;
+	OnRep_AbilityCollected();
 	Destroy();
 }
 
-void ASPowerupObject::OnPowerupStateChanged(bool bNewStateIsActive)
+//void ASPowerupObject::AddPowerupToPlayer(AActor* Player, TSubclassOf<ASPowerupObject> PowerupClass)
+//{
+//	int ChargesToAdd = 1;
+//	
+//	PlayerCharacter = Cast<ASCharacter>(Player);
+//	PlayerCharacter->AddPowerupChargeToPlayer(PowerupClass, ChargesToAdd);
+//
+//	bAbilityCollected = true;
+//	OnRep_AbilityCollected();
+//	Destroy();
+//}
+
+void ASPowerupObject::OnAbilityPickupStateChanged(bool bNewStateIsActive)
 {
 	if (bNewStateIsActive)
 	{
@@ -49,15 +60,15 @@ void ASPowerupObject::OnPowerupStateChanged(bool bNewStateIsActive)
 	}
 }
 
-void ASPowerupObject::OnRep_PowerupCollected()
+void ASPowerupObject::OnRep_AbilityCollected()
 {
-	OnPowerupStateChanged(bPowerupCollected);
+	OnAbilityPickupStateChanged(bAbilityCollected);
 }
 
 void ASPowerupObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ASPowerupObject, bPowerupCollected);
+	DOREPLIFETIME(ASPowerupObject, bAbilityCollected);
 }
 

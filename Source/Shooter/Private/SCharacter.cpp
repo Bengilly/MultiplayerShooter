@@ -71,11 +71,11 @@ void ASCharacter::BeginPlay()
 			EquipWeapon(WeaponStructArray[0].Weapon);
 		}
 
-		InitialiseAbility(InvisibilityClass, 5);
-		InitialiseAbility(SpeedBoostClass, 5);
+		InitialiseAbility(EAbilityPickupType::Invisibility,InvisibilityClass, 5);
+		InitialiseAbility(EAbilityPickupType::SpeedBoost,SpeedBoostClass, 5);
 		if (AbilityStructArray.Num() > 0)
 		{
-			EquipAbility(AbilityStructArray[0].Ability);
+			EquipAbility(AbilityStructArray[0].AbilityInstance);
 		}
 	}
 
@@ -322,31 +322,28 @@ void ASCharacter::OnHealthChanged(USHealthComponent* CharacterHealthComp, float 
 
 //  ------------ Ability Functions ------------  //
 
-void ASCharacter::AddPowerupChargeToPlayer(TSubclassOf<ASPowerupObject> Powerup, int Charges)
+void ASCharacter::AddPowerupChargeToPlayer(EAbilityPickupType PickupType, int Charges)
 {
-	if (!Powerup)
+	if (GetLocalRole() == ROLE_Authority)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Powerup object is null"));
-		return;
-	}
-	
-	//if (AbilityArray.Contains(Powerup))
-	//{
 		for (int i = 0; i < AbilityStructArray.Num(); i++)
 		{
-			if (AbilityStructArray[i].AbilityType == Powerup)
+			if (AbilityStructArray[i].AbilityEnum == PickupType)
 			{
 				AbilityStructArray[i].NumberOfCharges += Charges;
-		
-				FString ClassName = Powerup->GetName();
-				UE_LOG(LogTemp, Log, TEXT("Ability: %s"), *ClassName);
+
+				//UE_LOG(LogTemp, Log, TEXT("Ability: %s"), *FString(Powerup->GetName()));
 				UE_LOG(LogTemp, Log, TEXT("Total charges: %d"), AbilityStructArray[i].NumberOfCharges);
 			}
 		}
-	//}
+	}
+	else
+	{
+		ServerAddPowerupChargeToPlayer(PickupType, Charges);
+	}
 }
 
-void ASCharacter::InitialiseAbility(TSubclassOf<ASPowerupBase> AbilityClass, int Charges)
+void ASCharacter::InitialiseAbility(EAbilityPickupType PickupType, TSubclassOf<ASPowerupBase> AbilityClass, int Charges)
 {
 	if (GetLocalRole() < ROLE_Authority)
 	{
@@ -358,14 +355,14 @@ void ASCharacter::InitialiseAbility(TSubclassOf<ASPowerupBase> AbilityClass, int
 
 	if (Ability)
 	{
-		AbilityInfoStruct.Ability = Ability;
-		AbilityInfoStruct.AbilityType = AbilityClass;
+		AbilityInfoStruct.AbilityInstance = Ability;
+		AbilityInfoStruct.AbilityEnum = PickupType;
 		AbilityInfoStruct.NumberOfCharges = Charges;
 
-		AbilityInfoStruct.Ability->SetOwner(this);
+		AbilityInfoStruct.AbilityInstance->SetOwner(this);
 		AbilityStructArray.Add(AbilityInfoStruct);
 
-		UE_LOG(LogTemp, Log, TEXT("Ability Initialised: %s"), *FString(AbilityInfoStruct.Ability->GetName()));
+		UE_LOG(LogTemp, Log, TEXT("Ability Initialised: %s"), *FString(AbilityInfoStruct.AbilityInstance->GetName()));
 		UE_LOG(LogTemp, Log, TEXT("Ability Charges: %d"), AbilityInfoStruct.NumberOfCharges);		
 	}
 	else
@@ -373,15 +370,6 @@ void ASCharacter::InitialiseAbility(TSubclassOf<ASPowerupBase> AbilityClass, int
 		UE_LOG(LogTemp, Warning, TEXT("Ability Class is null"));
 	}
 }
-
-//void ASCharacter::AddAbility(ASPowerupBase* Ability)
-//{
-//	if (Ability && GetLocalRole() == ROLE_Authority)
-//	{
-//		Ability->SetOwner(this);
-//		AbilityClassArray.AddUnique(Ability);
-//	}
-//}
 
 void ASCharacter::UseAbility()
 {
@@ -394,14 +382,13 @@ void ASCharacter::UseAbility()
 		{
 			for (int i = 0; i < AbilityStructArray.Num(); i++)
 			{
-				if (SelectedAbility == AbilityStructArray[i].Ability && AbilityStructArray[i].NumberOfCharges > 0)
+				if (SelectedAbility == AbilityStructArray[i].AbilityInstance && AbilityStructArray[i].NumberOfCharges > 0)
 				{
-					AbilityStructArray[i].Ability->ActivateAbility(this);
+					AbilityStructArray[i].AbilityInstance->ActivateAbility(this);
 					AbilityStructArray[i].NumberOfCharges -= 1;
 				}
 			}
 		}
-		
 	}
 	else
 	{
@@ -419,11 +406,11 @@ void ASCharacter::SwitchNextAbility()
 		{
 			++AbilityIndex;
 
-			if (ASPowerupBase* NextAbility = AbilityStructArray[AbilityIndex].Ability) //need this?
+			if (ASPowerupBase* NextAbility = AbilityStructArray[AbilityIndex].AbilityInstance) //need this?
 			{
 				UE_LOG(LogTemp, Log, TEXT("Attempting to select ability..."));
 
-				EquipAbility(AbilityStructArray[AbilityIndex].Ability);
+				EquipAbility(AbilityStructArray[AbilityIndex].AbilityInstance);
 				//SelectedAbility = AbilityStructArray[AbilityIndex].Ability;		//need to replicate to clients??
 
 				UE_LOG(LogTemp, Log, TEXT("Ability selected: %s"), *FString(SelectedAbility->GetName()));
@@ -447,11 +434,11 @@ void ASCharacter::SwitchPreviousAbility()
 		{
 			--AbilityIndex;
 
-			if (ASPowerupBase* NextAbility = AbilityStructArray[AbilityIndex].Ability)
+			if (ASPowerupBase* NextAbility = AbilityStructArray[AbilityIndex].AbilityInstance)
 			{
 				UE_LOG(LogTemp, Log, TEXT("Attempting to select ability..."));
 
-				EquipAbility(AbilityStructArray[AbilityIndex].Ability);
+				EquipAbility(AbilityStructArray[AbilityIndex].AbilityInstance);
 				//SelectedAbility = AbilityStructArray[AbilityIndex].Ability;
 
 				UE_LOG(LogTemp, Log, TEXT("Ability selected: %s"), *FString(SelectedAbility->GetName()));
@@ -473,7 +460,6 @@ void ASCharacter::OnRep_ChangeAbility()
 void ASCharacter::SetCurrentAbility(ASPowerupBase* NewSelectedAbility)
 {
 	SelectedAbility = NewSelectedAbility;
-	//SelectedAbility->SetOwner(this);
 }
 
 void ASCharacter::EquipAbility(ASPowerupBase* NewSelectedAbility)
@@ -509,6 +495,11 @@ void ASCharacter::ServerSwitchPreviousAbility_Implementation()
 void ASCharacter::ServerEquipAbility_Implementation(ASPowerupBase* NewSelectedAbility)
 {
 	EquipAbility(NewSelectedAbility);
+}
+
+void ASCharacter::ServerAddPowerupChargeToPlayer_Implementation(EAbilityPickupType PickupType, int Charges)
+{
+	AddPowerupChargeToPlayer(PickupType, Charges);
 }
 
 // Called every frame

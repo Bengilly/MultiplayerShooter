@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "SEnumAbilityPickup.h"
 #include "SPowerupObject.generated.h"
 
 class URotatingMovementComponent;
@@ -23,12 +24,15 @@ protected:
 
 	//  ------------ Variables ------------  //
 
+	UPROPERTY(BlueprintReadWrite)
+	EAbilityPickupType AbilityPickupType;
+
 	ASCharacter* PlayerCharacter;
 
 	FTimerHandle TimerHandle_PowerupEffectTick;
 
-	UPROPERTY(ReplicatedUsing = OnRep_PowerupCollected)
-	bool bPowerupCollected;
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityCollected)
+	bool bAbilityCollected;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	URotatingMovementComponent* RotatingComponent;
@@ -43,13 +47,14 @@ protected:
 	//void OnEffectTick();
 
 	UFUNCTION()
-	void OnRep_PowerupCollected();
+	void OnRep_AbilityCollected();
 
 	UFUNCTION()
-	void OnPowerupStateChanged(bool bNewStateIsActive);
+	void OnAbilityPickupStateChanged(bool bNewStateIsActive);
 
 public:
-	void AddPowerupToPlayer(AActor* PlayerToAddPowerup, TSubclassOf<ASPowerupObject> PowerupClass);
+
+	void AddPowerupToPlayer(AActor* PlayerToAddPowerup);
 
 	void ActivatePowerup(AActor* PlayerToApplyPowerup);
 

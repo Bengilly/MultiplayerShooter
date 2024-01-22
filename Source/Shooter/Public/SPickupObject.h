@@ -4,12 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "SEnumAbilityPickup.h"
 #include "SPickupObject.generated.h"
 
 class USphereComponent;
 class UDecalComponent;
 class ASPowerupObject;
-
 
 UCLASS()
 class SHOOTER_API ASPickupObject : public AActor
@@ -24,13 +24,13 @@ protected:
 
 	//  ------------ Variables ------------  //
 
-	ASPowerupObject* PowerupInstance;
+	ASPowerupObject* AbilityPickupInstance;
 
 	UPROPERTY(EditInstanceOnly, Category = "PickupObject")
 	float SpawnCooldown;
 
 	UPROPERTY(EditInstanceOnly, Category = "PickupObject")
-	TSubclassOf<ASPowerupObject> PowerupClass;
+	TSubclassOf<ASPowerupObject> AbilityPickupClass;
 
 	FTimerHandle TimerHandle_RespawnTimer;
 

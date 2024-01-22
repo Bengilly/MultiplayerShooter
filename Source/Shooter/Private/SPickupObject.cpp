@@ -41,11 +41,11 @@ void ASPickupObject::NotifyActorBeginOverlap(AActor* Player)
 	Super::NotifyActorBeginOverlap(Player);
 
 	//add powerup to player if it has been successfully spawned
-	if (PowerupInstance && GetLocalRole() == ROLE_Authority)
+	if (AbilityPickupInstance && GetLocalRole() == ROLE_Authority)
 	{
-		//PowerupInstance->ActivatePowerup(Player);
-		PowerupInstance->AddPowerupToPlayer(Player, PowerupClass);
-		PowerupInstance = nullptr;
+		UE_LOG(LogTemp, Log, TEXT("AbilityPickupClass: %s"), *FString(AbilityPickupClass->GetName()));
+		AbilityPickupInstance->AddPowerupToPlayer(Player);
+		AbilityPickupInstance = nullptr;
 
 		GetWorldTimerManager().SetTimer(TimerHandle_RespawnTimer, this, &ASPickupObject::SpawnPickup, SpawnCooldown);
 	}
@@ -54,7 +54,7 @@ void ASPickupObject::NotifyActorBeginOverlap(AActor* Player)
 void ASPickupObject::SpawnPickup()
 {
 	//check if Powerup Class is setup correctly and don't spawn object if null
-	if (PowerupClass == nullptr)
+	if (AbilityPickupClass == nullptr)
 	{
 		return;
 	}
@@ -62,5 +62,5 @@ void ASPickupObject::SpawnPickup()
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	PowerupInstance = GetWorld()->SpawnActor<ASPowerupObject>(PowerupClass, GetTransform(), SpawnParams);
+	AbilityPickupInstance = GetWorld()->SpawnActor<ASPowerupObject>(AbilityPickupClass, GetTransform(), SpawnParams);
 }
