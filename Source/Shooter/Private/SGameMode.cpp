@@ -26,7 +26,8 @@ void ASGameMode::StartPlay()
 {
 	Super::StartPlay();
 
-	StartTimerForNextWave();
+
+	//StartTimerForNextWave();
 }
 
 void ASGameMode::Tick(float DeltaSeconds)
