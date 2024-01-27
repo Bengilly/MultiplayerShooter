@@ -78,7 +78,6 @@ void ASCharacter::BeginPlay()
 			EquipAbility(AbilityStructArray[0].AbilityInstance);
 		}
 	}
-
 }
 
 //spawn weapons on player
