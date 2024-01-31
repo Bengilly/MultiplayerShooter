@@ -6,17 +6,17 @@
 
 //  ------------ Multiplayer Functions ------------  //
 
-void ASGameState::OnRep_WaveState(EEnemyWaveState PreviousState)
+void ASGameState::OnRep_WaveState(EGameState PreviousState)
 {
 	WaveStateUpdated(WaveState, PreviousState);
 }
 
-void ASGameState::SetWaveState(EEnemyWaveState NewState)
+void ASGameState::SetState(EGameState NewState)
 {
 	//call on server
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		EEnemyWaveState PreviousState = WaveState;
+		EGameState PreviousState = WaveState;
 		WaveState = NewState;
 		OnRep_WaveState(PreviousState);
 	}
@@ -29,3 +29,19 @@ void ASGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	//replicate variables
 	DOREPLIFETIME(ASGameState, WaveState);
 }
+
+//void ASGameState::OnRep_WaveState(EEnemyWaveState PreviousState)
+//{
+//	WaveStateUpdated(WaveState, PreviousState);
+//}
+//
+//void ASGameState::SetWaveState(EEnemyWaveState NewState)
+//{
+//	//call on server
+//	if (GetLocalRole() == ROLE_Authority)
+//	{
+//		EEnemyWaveState PreviousState = WaveState;
+//		WaveState = NewState;
+//		OnRep_WaveState(PreviousState);
+//	}
+//}

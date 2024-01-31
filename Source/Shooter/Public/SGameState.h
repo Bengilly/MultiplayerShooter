@@ -6,15 +6,23 @@
 #include "GameFramework/GameStateBase.h"
 #include "SGameState.generated.h"
 
-UENUM(BlueprintType)
-enum class EEnemyWaveState : uint8
-{
-	WaitingToSpawn,
-	SpawningWave,
-	FinishedSpawning,
-	WaveComplete,
-	GameOver,
+//UENUM(BlueprintType)
+//enum class EEnemyWaveState : uint8
+//{
+//	WaitingToSpawn,
+//	SpawningWave,
+//	FinishedSpawning,
+//	WaveComplete,
+//	GameOver,
+//
+//};
 
+UENUM(BlueprintType)
+enum class EGameState : uint8
+{
+	WaitingToStart,
+	InProgress,
+	GameOver
 };
 
 /**
@@ -27,18 +35,43 @@ class SHOOTER_API ASGameState : public AGameStateBase
 	
 protected:
 
-	UFUNCTION()
-	void OnRep_WaveState(EEnemyWaveState PreviousState);
-
-	UFUNCTION(BlueprintImplementableEvent, Category = "GameState")
-	void WaveStateUpdated(EEnemyWaveState NewState, EEnemyWaveState PreviousState);
-
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_WaveState, Category = "GameState")
-	EEnemyWaveState WaveState;
 
 public:
 
-	void SetWaveState(EEnemyWaveState NewState);
+	//  ------------ Variables ------------  //
+
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_WaveState, Category = "GameState")
+	EGameState WaveState;
+
+
+	//  ------------ Functions ------------  //
+
+	void SetState(EGameState NewState);
+
+
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "GameState")
+	void WaveStateUpdated(EGameState NewState, EGameState PreviousState);
+
+	UFUNCTION()
+	void OnRep_WaveState(EGameState PreviousState);
+
+protected:
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+//	UFUNCTION()
+//	void OnRep_WaveState(EEnemyWaveState PreviousState);
+//
+//	UFUNCTION(BlueprintImplementableEvent, Category = "GameState")
+//	void WaveStateUpdated(EEnemyWaveState NewState, EEnemyWaveState PreviousState);
+//
+//	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_WaveState, Category = "GameState")
+//	EEnemyWaveState WaveState;
+//
+//public:
+//
+//	void SetWaveState(EEnemyWaveState NewState);
 
 
 };
