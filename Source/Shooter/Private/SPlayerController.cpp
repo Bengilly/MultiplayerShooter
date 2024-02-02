@@ -43,8 +43,6 @@ void ASPlayerController::SpawnPlayer()
 	{
 		ServerSpawnPlayer();
 	}
-
-
 }
 
 void ASPlayerController::ServerSpawnPlayer_Implementation()

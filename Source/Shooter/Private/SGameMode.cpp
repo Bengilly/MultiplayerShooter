@@ -12,7 +12,6 @@
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerController.h"
 
-
 ASGameMode::ASGameMode()
 {
 	GameStateClass = ASGameState::StaticClass();
@@ -21,15 +20,6 @@ ASGameMode::ASGameMode()
 	//set tickinterval to 1 second to avoid calling every frame
 	PrimaryActorTick.TickInterval = 1.0f;
 	PrimaryActorTick.bCanEverTick = true;
-
-	//// set default pawn class to our Blueprinted character
-	//static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Content/Blueprints/BP_Character"));
-	//if (PlayerPawnBPClass.Class != NULL)
-	//{
-	//	DefaultPawnClass = PlayerPawnBPClass.Class;
-	//}
-
-	//TimeBetweenEnemyWaves = 2.0f;
 }
 
 void ASGameMode::BeginPlay()
@@ -42,9 +32,6 @@ void ASGameMode::BeginPlay()
 void ASGameMode::StartPlay()
 {
 	Super::StartPlay();
-
-	//SpawnPlayersAtSpawnPoints();
-
 
 	//StartTimerForNextWave();
 }
@@ -69,60 +56,47 @@ void ASGameMode::SpawnPlayer(APlayerController* PlayerController)
 
 	PlayerPawn = GetWorld()->SpawnActor<APawn>(PlayerClass, FindRandomSpawnLocation());
 
+	//PlayerController->SetControlRotation();
+
 	PlayerController->Possess(PlayerPawn);
 }
 
 //find all instances of the Player Start class and assign random spawn location
-FTransform ASGameMode::FindRandomSpawnLocation() const
+FTransform ASGameMode::FindRandomSpawnLocation()
 {
-	//TSubclassOf<AActor> PlayerStartActors;
 	TArray<AActor*> SpawnPointArray;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), SpawnPointArray);
 
 	if (SpawnPointArray.Num() > 0)
 	{
-		//find a random spawn point between 0 and total available player start locations
-		int32 SpawnPointIndex = FMath::RandRange(0, SpawnPointArray.Num() - 1);
+		TArray<FVector> AvailableSpawnLocations;
 
-		return SpawnPointArray[SpawnPointIndex]->GetActorTransform();
+		for (AActor* SpawnPoint : SpawnPointArray)
+		{
+			FVector SpawnLocation = SpawnPoint->GetActorLocation();
+			if (!UsedSpawnLocations.Contains(SpawnLocation))
+			{
+				AvailableSpawnLocations.Add(SpawnLocation);
+			}
+		}
+
+		if (AvailableSpawnLocations.Num() > 0)
+		{
+			//find a random spawn point between 0 and total available player start locations
+			int32 SpawnPointIndex = FMath::RandRange(0, AvailableSpawnLocations.Num() - 1);
+			FVector SelectedSpawnLocation = AvailableSpawnLocations[SpawnPointIndex];
+
+			UE_LOG(LogTemp, Log, TEXT("SpawnPointIndex: %d"), SpawnPointIndex);
+			UE_LOG(LogTemp, Log, TEXT("SelectedSpawnLocation: %s"), *SelectedSpawnLocation.ToString());
+
+			// add to used locations
+			UsedSpawnLocations.Add(SelectedSpawnLocation);
+
+			return FTransform(SelectedSpawnLocation);
+		}
 	}
 	return FTransform::Identity;
 }
-
-////spawn players at selected player start instances		/*	needs further work	*/
-//void ASGameMode::SpawnPlayersAtSpawnPoints()
-//{
-//	UE_LOG(LogTemp, Warning, TEXT("Spawning players..."));
-//
-//	//find all instances of the Player Start class
-//	TSubclassOf<APlayerStart> PlayerStartActors;
-//	TArray<AActor*> SpawnPointArray;
-//	UGameplayStatics::GetAllActorsOfClass(GetWorld(), PlayerStartActors, SpawnPointArray);
-//
-//	// iterate over found spawn points and spawn players
-//	int32 PlayerIndex = 0;
-//	for (AActor* SpawnPoint : SpawnPointArray)
-//	{
-//		APlayerStart* PlayerStart = Cast<APlayerStart>(SpawnPoint);
-//		if (PlayerStart)
-//		{
-//			// spawn a player at the current spawn point
-//			APlayerController* PC = UGameplayStatics::CreatePlayer(GetWorld(), PlayerIndex, true);
-//			if (PC)
-//			{
-//				APawn* NewPlayerPawn = GetWorld()->SpawnActor<APawn>(DefaultPawnClass, PlayerStart->GetActorLocation(), PlayerStart->GetActorRotation());
-//				if (NewPlayerPawn)
-//				{
-//					PC->Possess(NewPlayerPawn);
-//				}
-//			}
-//
-//			// Increment player index for the next spawn point
-//			PlayerIndex++;
-//		}
-//	}
-//}
-
 
 void ASGameMode::SetGameState(EGameState NewState)
 {
@@ -132,7 +106,6 @@ void ASGameMode::SetGameState(EGameState NewState)
 		{
 			//call function on server to replicate to clients about the updating gamestate
 			GS->SetState(NewState);
-			
 		}
 	}
 }

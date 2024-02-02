@@ -36,14 +36,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Spawning")
 	TSubclassOf<ASCharacter> PlayerClass;
 
-
+	TSet<FVector> UsedSpawnLocations;
 
 
 	//  ------------ Functions ------------  //
 
 	//void SpawnPlayersAtSpawnPoints();
 
-	FTransform FindRandomSpawnLocation() const;
+	FTransform FindRandomSpawnLocation();
 
 	void SetGameState(EGameState NewState);
 
