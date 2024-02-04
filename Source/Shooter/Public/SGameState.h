@@ -53,6 +53,8 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "GameState")
 	void WaveStateUpdated(EGameState NewState, EGameState PreviousState);
 
+	void UpdateMatchTime(float MatchTimer);
+
 	UFUNCTION()
 	void OnRep_WaveState(EGameState PreviousState);
 

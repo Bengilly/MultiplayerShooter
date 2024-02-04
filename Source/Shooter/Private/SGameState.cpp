@@ -4,6 +4,15 @@
 #include "SGameState.h"
 #include "Net/UnrealNetwork.h"
 
+
+void ASGameState::UpdateMatchTime(float MatchTimer)
+{
+	//call this from game mode class
+	//replicate to clients and update HUD
+	//get info from gamemode
+}
+
+
 //  ------------ Multiplayer Functions ------------  //
 
 void ASGameState::OnRep_WaveState(EGameState PreviousState)

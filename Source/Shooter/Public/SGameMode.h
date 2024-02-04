@@ -8,6 +8,7 @@
 
 class APlayerStart;
 class ASCharacter;
+class ASPlayerController;
 
 //forward delcare enum class in gamestate
 enum class EGameState : uint8;
@@ -37,24 +38,24 @@ protected:
 	TSubclassOf<ASCharacter> PlayerClass;
 
 	TSet<FVector> UsedSpawnLocations;
+	FTimerHandle TimerHandler_GameTimer;
+	TArray<ASPlayerController*> ConnectedPlayersArray;
 
+	UPROPERTY(BlueprintReadOnly)
+	float MatchDuration;
 
 	//  ------------ Functions ------------  //
 
 	//void SpawnPlayersAtSpawnPoints();
 
 	FTransform FindRandomSpawnLocation();
+	void StartMatchTimer();
+	void MatchTimerInterval();
 
 	void SetGameState(EGameState NewState);
 
-
-
-
-
-
-
-
-
+	UFUNCTION(BlueprintPure, Category = "Match Timer")
+	float GetRemainingMatchTime() const;
 
 
 
@@ -108,10 +109,9 @@ public:
 	virtual void StartPlay() override;
 	void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void PostLogin(APlayerController* NewPlayerController) override;
 
-
-
-
+	virtual void Logout(AController* PlayerController) override;
 
 	UPROPERTY(BlueprintAssignable, Category = "GameMode")
 	FOnActorKilled OnActorKilled;

@@ -11,6 +11,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerController.h"
+#include "Components/ArrowComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "SPlayerController.h"
 
 ASGameMode::ASGameMode()
 {
@@ -20,13 +23,15 @@ ASGameMode::ASGameMode()
 	//set tickinterval to 1 second to avoid calling every frame
 	PrimaryActorTick.TickInterval = 1.0f;
 	PrimaryActorTick.bCanEverTick = true;
+
+	MatchDuration = 20.0f;
 }
 
 void ASGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	
+	StartMatchTimer();
 }
 
 void ASGameMode::StartPlay()
@@ -44,6 +49,72 @@ void ASGameMode::Tick(float DeltaSeconds)
 	//ScanForAlivePlayers();
 }
 
+//add the player controller to the array when the join the game session
+void ASGameMode::PostLogin(APlayerController* NewPlayerController)
+{
+	Super::PostLogin(NewPlayerController);
+
+	ASPlayerController* ConnectedController = Cast<ASPlayerController>(NewPlayerController);
+	if (ConnectedController)
+	{
+		ConnectedPlayersArray.Add(ConnectedController);
+	}
+}
+
+//remove the player controller from the array when they disconnect
+void ASGameMode::Logout(AController* PlayerController)
+{
+	Super::Logout(PlayerController);
+
+	ASPlayerController* LeavingPlayerController = Cast<ASPlayerController>(PlayerController);
+	if (LeavingPlayerController)
+	{
+		ConnectedPlayersArray.Remove(LeavingPlayerController);
+	}
+}
+
+//set the new game state and replicate to other clients
+void ASGameMode::SetGameState(EGameState NewState)
+{
+	ASGameState* GS = GetGameState<ASGameState>();
+	{
+		if (GS)
+		{
+			//call function on server to replicate to clients about the updating gamestate
+			GS->SetState(NewState);
+		}
+	}
+}
+
+void ASGameMode::StartMatchTimer()
+{
+	SetGameState(EGameState::InProgress);
+
+	//start timer for round
+	GetWorld()->GetTimerManager().SetTimer(TimerHandler_GameTimer, this, &ASGameMode::MatchTimerInterval, 1.0f, true, 0);
+}
+ 
+void ASGameMode::MatchTimerInterval()
+{
+	MatchDuration -= 1.0f;
+
+	UE_LOG(LogTemp, Log, TEXT("Remaining match time: %f"), MatchDuration);
+
+	if (MatchDuration <= 0.0f)
+	{
+		//gameover
+		UE_LOG(LogTemp, Log, TEXT("Match has ended!"));
+
+		GetWorldTimerManager().ClearTimer(TimerHandler_GameTimer);
+
+	}
+}
+
+float ASGameMode::GetRemainingMatchTime() const
+{
+	return MatchDuration;
+}
+
 
 void ASGameMode::SpawnPlayer(APlayerController* PlayerController)
 {
@@ -57,7 +128,6 @@ void ASGameMode::SpawnPlayer(APlayerController* PlayerController)
 	PlayerPawn = GetWorld()->SpawnActor<APawn>(PlayerClass, FindRandomSpawnLocation());
 
 	//PlayerController->SetControlRotation();
-
 	PlayerController->Possess(PlayerPawn);
 }
 
@@ -97,21 +167,6 @@ FTransform ASGameMode::FindRandomSpawnLocation()
 	}
 	return FTransform::Identity;
 }
-
-void ASGameMode::SetGameState(EGameState NewState)
-{
-	ASGameState* GS = GetGameState<ASGameState>();
-	{
-		if (GS)
-		{
-			//call function on server to replicate to clients about the updating gamestate
-			GS->SetState(NewState);
-		}
-	}
-}
-
-
-
 
 //void ASGameMode::SetEnemyWaveState(EEnemyWaveState NewState)
 //{
