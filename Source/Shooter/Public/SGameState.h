@@ -33,9 +33,6 @@ class SHOOTER_API ASGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 	
-protected:
-
-
 public:
 
 	//  ------------ Variables ------------  //
@@ -48,17 +45,19 @@ public:
 
 	void SetState(EGameState NewState);
 
-
-
 	UFUNCTION(BlueprintImplementableEvent, Category = "GameState")
 	void WaveStateUpdated(EGameState NewState, EGameState PreviousState);
 
-	void UpdateMatchTime(float MatchTimer);
+	UFUNCTION(BlueprintCallable, Category = "GameState")
+	void UpdateMatchTimerToPlayers(float MatchTimer);
 
 	UFUNCTION()
 	void OnRep_WaveState(EGameState PreviousState);
 
 protected:
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
+	float GameTimer;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 

@@ -4,14 +4,11 @@
 #include "SGameState.h"
 #include "Net/UnrealNetwork.h"
 
-
-void ASGameState::UpdateMatchTime(float MatchTimer)
+//called from game mode to update the match timer. Timer displayed to player HUD.
+void ASGameState::UpdateMatchTimerToPlayers(float MatchTimer)
 {
-	//call this from game mode class
-	//replicate to clients and update HUD
-	//get info from gamemode
+	GameTimer = MatchTimer;
 }
-
 
 //  ------------ Multiplayer Functions ------------  //
 
@@ -37,6 +34,7 @@ void ASGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 	//replicate variables
 	DOREPLIFETIME(ASGameState, WaveState);
+	DOREPLIFETIME(ASGameState, GameTimer);
 }
 
 //void ASGameState::OnRep_WaveState(EEnemyWaveState PreviousState)

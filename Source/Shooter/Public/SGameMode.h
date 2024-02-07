@@ -29,6 +29,9 @@ public:
 	ASGameMode();
 
 	void SpawnPlayer(APlayerController* PlayerController);
+
+	UFUNCTION(BlueprintPure, Category = "Match Timer")
+	float GetRemainingMatchTime() const;
 	
 protected:
 
@@ -41,7 +44,7 @@ protected:
 	FTimerHandle TimerHandler_GameTimer;
 	TArray<ASPlayerController*> ConnectedPlayersArray;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	float MatchDuration;
 
 	//  ------------ Functions ------------  //
@@ -51,15 +54,9 @@ protected:
 	FTransform FindRandomSpawnLocation();
 	void StartMatchTimer();
 	void MatchTimerInterval();
-
 	void SetGameState(EGameState NewState);
 
-	UFUNCTION(BlueprintPure, Category = "Match Timer")
-	float GetRemainingMatchTime() const;
-
-
-
-
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 
 

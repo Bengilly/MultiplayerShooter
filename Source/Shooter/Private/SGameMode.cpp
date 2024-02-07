@@ -108,11 +108,22 @@ void ASGameMode::MatchTimerInterval()
 		GetWorldTimerManager().ClearTimer(TimerHandler_GameTimer);
 
 	}
+
+	ASGameState* GS = GetGameState<ASGameState>();
+	GS->UpdateMatchTimerToPlayers(MatchDuration);
 }
 
 float ASGameMode::GetRemainingMatchTime() const
 {
 	return MatchDuration;
+}
+
+void ASGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	//replicate variables
+	DOREPLIFETIME(ASGameMode, MatchDuration);
 }
 
 
