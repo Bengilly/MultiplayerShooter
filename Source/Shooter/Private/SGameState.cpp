@@ -5,16 +5,21 @@
 #include "Net/UnrealNetwork.h"
 
 //called from game mode to update the match timer. Timer displayed to player HUD.
-void ASGameState::UpdateMatchTimerToPlayers(float MatchTimer)
+void ASGameState::UpdateMatchTimerToPlayers(float Time)
 {
-	GameTimer = MatchTimer;
+	MatchTimer = Time;
+}
+
+void ASGameState::UpdateWarmupTimerToPlayers(float Time)
+{
+	WarmupTimer = Time;
 }
 
 //  ------------ Multiplayer Functions ------------  //
 
-void ASGameState::OnRep_WaveState(EGameState PreviousState)
+void ASGameState::OnRep_GameState(EGameState PreviousState)
 {
-	WaveStateUpdated(WaveState, PreviousState);
+	WaveStateUpdated(GameState, PreviousState);
 }
 
 void ASGameState::SetState(EGameState NewState)
@@ -22,9 +27,9 @@ void ASGameState::SetState(EGameState NewState)
 	//call on server
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		EGameState PreviousState = WaveState;
-		WaveState = NewState;
-		OnRep_WaveState(PreviousState);
+		EGameState PreviousState = GameState;
+		GameState = NewState;
+		OnRep_GameState(PreviousState);
 	}
 }
 
@@ -33,8 +38,9 @@ void ASGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	//replicate variables
-	DOREPLIFETIME(ASGameState, WaveState);
-	DOREPLIFETIME(ASGameState, GameTimer);
+	DOREPLIFETIME(ASGameState, GameState);
+	DOREPLIFETIME(ASGameState, MatchTimer)
+	DOREPLIFETIME(ASGameState, WarmupTimer);
 }
 
 //void ASGameState::OnRep_WaveState(EEnemyWaveState PreviousState)

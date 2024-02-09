@@ -24,14 +24,17 @@ ASGameMode::ASGameMode()
 	PrimaryActorTick.TickInterval = 1.0f;
 	PrimaryActorTick.bCanEverTick = true;
 
-	MatchDuration = 20.0f;
+	MatchDuration = 10.0f;
+	WarmupDuration = 10.0f;
 }
 
 void ASGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	StartMatchTimer();
+	StartWarmupTimer();
+
+	//StartMatchTimer();
 }
 
 void ASGameMode::StartPlay()
@@ -86,6 +89,36 @@ void ASGameMode::SetGameState(EGameState NewState)
 	}
 }
 
+//Warmup timers
+void ASGameMode::StartWarmupTimer()
+{
+	SetGameState(EGameState::WaitingToStart);
+
+	//start timer for warmup
+	GetWorld()->GetTimerManager().SetTimer(TimerHandler_WarmupTimer, this, &ASGameMode::WarmupTimerInterval, 1.0f, true, 0);
+}
+
+void ASGameMode::WarmupTimerInterval()
+{
+	WarmupDuration -= 1.0f;
+
+	UE_LOG(LogTemp, Log, TEXT("Remaining warmup time: %f"), WarmupDuration);
+
+	if (WarmupDuration <= 0.0f)
+	{
+		//gameover
+		UE_LOG(LogTemp, Log, TEXT("Warmup has ended, game on!"));
+
+		GetWorldTimerManager().ClearTimer(TimerHandler_WarmupTimer);
+
+		StartMatchTimer();
+	}
+
+	ASGameState* GS = GetGameState<ASGameState>();
+	GS->UpdateWarmupTimerToPlayers(WarmupDuration);
+}
+
+//Game timers
 void ASGameMode::StartMatchTimer()
 {
 	SetGameState(EGameState::InProgress);
@@ -107,6 +140,7 @@ void ASGameMode::MatchTimerInterval()
 
 		GetWorldTimerManager().ClearTimer(TimerHandler_GameTimer);
 
+		SetGameState(EGameState::GameOver);
 	}
 
 	ASGameState* GS = GetGameState<ASGameState>();

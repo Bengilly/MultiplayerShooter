@@ -37,8 +37,8 @@ public:
 
 	//  ------------ Variables ------------  //
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_WaveState, Category = "GameState")
-	EGameState WaveState;
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_GameState, Category = "GameState")
+	EGameState GameState;
 
 
 	//  ------------ Functions ------------  //
@@ -49,21 +49,31 @@ public:
 	void WaveStateUpdated(EGameState NewState, EGameState PreviousState);
 
 	UFUNCTION(BlueprintCallable, Category = "GameState")
-	void UpdateMatchTimerToPlayers(float MatchTimer);
+	void UpdateMatchTimerToPlayers(float Time);
 
-	UFUNCTION()
-	void OnRep_WaveState(EGameState PreviousState);
+	UFUNCTION(BlueprintCallable, Category = "GameState")
+	void UpdateWarmupTimerToPlayers(float Time);
+
+
 
 protected:
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
-	float GameTimer;
+	float MatchTimer;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
+	float WarmupTimer;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
-//	UFUNCTION()
-//	void OnRep_WaveState(EEnemyWaveState PreviousState);
-//
+	UFUNCTION()
+	void OnRep_GameState(EGameState PreviousState);
+
+
+
+// 	UFUNCTION()
+//	void OnRep_WaveState(EGameState PreviousState);
+// 
 //	UFUNCTION(BlueprintImplementableEvent, Category = "GameState")
 //	void WaveStateUpdated(EEnemyWaveState NewState, EEnemyWaveState PreviousState);
 //

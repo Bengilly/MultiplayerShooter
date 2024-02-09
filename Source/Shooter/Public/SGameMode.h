@@ -42,18 +42,29 @@ protected:
 
 	TSet<FVector> UsedSpawnLocations;
 	FTimerHandle TimerHandler_GameTimer;
+	FTimerHandle TimerHandler_WarmupTimer;
 	TArray<ASPlayerController*> ConnectedPlayersArray;
 
-	UPROPERTY(Replicated, BlueprintReadOnly)
+	//duration of the match in seconds
+	UPROPERTY(Replicated, BlueprintReadOnly, EditDefaultsOnly)
 	float MatchDuration;
+
+	//duration of the match in seconds
+	UPROPERTY(Replicated, BlueprintReadOnly, EditDefaultsOnly)
+	float WarmupDuration;
 
 	//  ------------ Functions ------------  //
 
 	//void SpawnPlayersAtSpawnPoints();
 
 	FTransform FindRandomSpawnLocation();
+
+	void StartWarmupTimer();
+	void WarmupTimerInterval();
+
 	void StartMatchTimer();
 	void MatchTimerInterval();
+
 	void SetGameState(EGameState NewState);
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
@@ -90,8 +101,8 @@ protected:
 	////timer for next enemy wave
 	//void StartTimerForNextWave();
 
-	////respawn dead players
-	//void RespawnDeadPlayers();
+	//respawn dead players
+	void RespawnDeadPlayers();
 
 	////handle when to start next wave
 	//void QueryWaveState();
