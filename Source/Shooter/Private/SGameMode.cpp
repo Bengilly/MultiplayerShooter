@@ -19,22 +19,21 @@ ASGameMode::ASGameMode()
 {
 	GameStateClass = ASGameState::StaticClass();
 	PlayerStateClass = ASPlayerState::StaticClass();
+	PlayerControllerClass = ASPlayerController::StaticClass();
 
 	//set tickinterval to 1 second to avoid calling every frame
 	PrimaryActorTick.TickInterval = 1.0f;
 	PrimaryActorTick.bCanEverTick = true;
 
-	MatchDuration = 10.0f;
-	WarmupDuration = 10.0f;
+	MatchDuration = 60.0f;
+	WarmupDuration = 15.0f;
 }
 
 void ASGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	StartWarmupTimer();
-
-	//StartMatchTimer();
+	StartWarmup();
 }
 
 void ASGameMode::StartPlay()
@@ -52,15 +51,21 @@ void ASGameMode::Tick(float DeltaSeconds)
 	//ScanForAlivePlayers();
 }
 
-//add the player controller to the array when the join the game session
+//add the player controller to the array when they join the game session
 void ASGameMode::PostLogin(APlayerController* NewPlayerController)
 {
+
+	UE_LOG(LogTemp, Log, TEXT("PostLogin Controller connected: %s"), *FString(NewPlayerController->GetName()));
+
 	Super::PostLogin(NewPlayerController);
 
 	ASPlayerController* ConnectedController = Cast<ASPlayerController>(NewPlayerController);
 	if (ConnectedController)
 	{
 		ConnectedPlayersArray.Add(ConnectedController);
+
+		UE_LOG(LogTemp, Log, TEXT("(Spawning) Player connected: %s"), *FString(ConnectedController->GetName()));
+		UE_LOG(LogTemp, Log, TEXT("(Spawning) Connected players: %d"), ConnectedPlayersArray.Num());
 	}
 }
 
@@ -74,6 +79,8 @@ void ASGameMode::Logout(AController* PlayerController)
 	{
 		ConnectedPlayersArray.Remove(LeavingPlayerController);
 	}
+
+	UE_LOG(LogTemp, Log, TEXT("Connected players: %d"), ConnectedPlayersArray.Num());
 }
 
 //set the new game state and replicate to other clients
@@ -90,7 +97,7 @@ void ASGameMode::SetGameState(EGameState NewState)
 }
 
 //Warmup timers
-void ASGameMode::StartWarmupTimer()
+void ASGameMode::StartWarmup()
 {
 	SetGameState(EGameState::WaitingToStart);
 
@@ -111,7 +118,7 @@ void ASGameMode::WarmupTimerInterval()
 
 		GetWorldTimerManager().ClearTimer(TimerHandler_WarmupTimer);
 
-		StartMatchTimer();
+		StartMatch();
 	}
 
 	ASGameState* GS = GetGameState<ASGameState>();
@@ -119,14 +126,23 @@ void ASGameMode::WarmupTimerInterval()
 }
 
 //Game timers
-void ASGameMode::StartMatchTimer()
+void ASGameMode::StartMatch()
 {
 	SetGameState(EGameState::InProgress);
+
+	for (ASPlayerController* PC : ConnectedPlayersArray)
+	{
+		if (PC)
+		{
+			PC->ServerTogglePlayerInput(false);
+		}
+	}
 
 	//start timer for round
 	GetWorld()->GetTimerManager().SetTimer(TimerHandler_GameTimer, this, &ASGameMode::MatchTimerInterval, 1.0f, true, 0);
 }
  
+//decrease match 
 void ASGameMode::MatchTimerInterval()
 {
 	MatchDuration -= 1.0f;
@@ -152,27 +168,18 @@ float ASGameMode::GetRemainingMatchTime() const
 	return MatchDuration;
 }
 
-void ASGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+//handle the spawning of player pawn on the server
+void ASGameMode::SpawnPlayer(ASPlayerController* PlayerController)
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	//replicate variables
-	DOREPLIFETIME(ASGameMode, MatchDuration);
-}
-
-
-void ASGameMode::SpawnPlayer(APlayerController* PlayerController)
-{
-	//check if player already possesses pawn and destroy it
 	APawn* PlayerPawn = PlayerController->GetPawn();
+
+	//check if player already possesses pawn and destroy it
 	if (IsValid(PlayerPawn))
 	{
 		PlayerPawn->Destroy();
 	}
 
-	PlayerPawn = GetWorld()->SpawnActor<APawn>(PlayerClass, FindRandomSpawnLocation());
-
-	//PlayerController->SetControlRotation();
+	PlayerPawn = GetWorld()->SpawnActor<APawn>(PlayerPawnClass, FindRandomSpawnLocation());
 	PlayerController->Possess(PlayerPawn);
 }
 
@@ -211,6 +218,14 @@ FTransform ASGameMode::FindRandomSpawnLocation()
 		}
 	}
 	return FTransform::Identity;
+}
+
+void ASGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	//replicate variables
+	DOREPLIFETIME(ASGameMode, MatchDuration);
 }
 
 //void ASGameMode::SetEnemyWaveState(EEnemyWaveState NewState)

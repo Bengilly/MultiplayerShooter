@@ -17,7 +17,10 @@ class SHOOTER_API ASPlayerController : public APlayerController
 public:
 	ASPlayerController();
 
+	void TogglePlayerInput(bool bEnableInput);
 
+	UFUNCTION(Client, Reliable)
+	void ServerTogglePlayerInput(bool bEnableInput);
 
 protected:
 
@@ -25,10 +28,12 @@ protected:
 	virtual void SetupInputComponent() override;
 	virtual void Tick(float DeltaTime) override;
 
-	void SpawnPlayer();
+	void SpawnPlayerCharacter();
 
 	//  ------------ Multiplayer Functions ------------  //
 
 	UFUNCTION(Server, Reliable)
-	void ServerSpawnPlayer();
+	void ServerSpawnPlayerCharacter();
+
+
 };

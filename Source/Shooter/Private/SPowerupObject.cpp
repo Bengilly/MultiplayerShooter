@@ -36,18 +36,6 @@ void ASPowerupObject::AddPowerupToPlayer(AActor* Player)
 	Destroy();
 }
 
-//void ASPowerupObject::AddPowerupToPlayer(AActor* Player, TSubclassOf<ASPowerupObject> PowerupClass)
-//{
-//	int ChargesToAdd = 1;
-//	
-//	PlayerCharacter = Cast<ASCharacter>(Player);
-//	PlayerCharacter->AddPowerupChargeToPlayer(PowerupClass, ChargesToAdd);
-//
-//	bAbilityCollected = true;
-//	OnRep_AbilityCollected();
-//	Destroy();
-//}
-
 void ASPowerupObject::OnAbilityPickupStateChanged(bool bNewStateIsActive)
 {
 	if (bNewStateIsActive)

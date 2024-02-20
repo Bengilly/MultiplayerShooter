@@ -28,17 +28,18 @@ public:
 
 	ASGameMode();
 
-	void SpawnPlayer(APlayerController* PlayerController);
+	void SpawnPlayer(ASPlayerController* PlayerController);
 
 	UFUNCTION(BlueprintPure, Category = "Match Timer")
 	float GetRemainingMatchTime() const;
+
 	
 protected:
 
 	//  ------------ Variables ------------  //
 
 	UPROPERTY(EditDefaultsOnly, Category = "Spawning")
-	TSubclassOf<ASCharacter> PlayerClass;
+	TSubclassOf<ASCharacter> PlayerPawnClass;
 
 	TSet<FVector> UsedSpawnLocations;
 	FTimerHandle TimerHandler_GameTimer;
@@ -53,16 +54,22 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly, EditDefaultsOnly)
 	float WarmupDuration;
 
+	//UPROPERTY(BlueprintReadWrite)
+	//int MaxPlayerConnections;
+
+	//UPROPERTY(BlueprintReadOnly)
+	//int CurrentPlayerConnections;
+
 	//  ------------ Functions ------------  //
 
 	//void SpawnPlayersAtSpawnPoints();
 
 	FTransform FindRandomSpawnLocation();
 
-	void StartWarmupTimer();
+	void StartWarmup();
 	void WarmupTimerInterval();
 
-	void StartMatchTimer();
+	void StartMatch();
 	void MatchTimerInterval();
 
 	void SetGameState(EGameState NewState);

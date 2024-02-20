@@ -17,6 +17,7 @@
 #include "Logging/StructuredLog.h"
 #include "SPowerupObject.h"
 #include "SPowerupBase.h"
+#include "SPlayerController.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -720,8 +721,26 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("SwitchNextAbility", IE_Pressed, this, &ASCharacter::SwitchNextAbility);
 	PlayerInputComponent->BindAction("SwitchPreviousAbility", IE_Pressed, this, &ASCharacter::SwitchPreviousAbility);
 
+	PlayerInputComponent->BindAction("Controller", IE_Pressed, this, &ASCharacter::PrintControllerClass);
+
 	//PlayerInputComponent->BindAction<FUseAbilityDelegate>("UseAbility", IE_Pressed, this, &ASCharacter::UseAbility, Ability);
 	
+}
+
+void ASCharacter::PrintControllerClass()
+{
+	ASPlayerController* PC = Cast<ASPlayerController>(GetController());
+
+	if (PC)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("(ToggleInput) TogglePlayerInputCalledOnController: %s"), *FString(PC->GetName()));
+		PC->TogglePlayerInput(false);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No controller possessing this character."));
+	}
+
 }
 
 //setup line trace from camera
@@ -793,10 +812,6 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASCharacter, AbilityInfoStruct);
 	DOREPLIFETIME(ASCharacter, AbilityStructArray);
 
-	//DOREPLIFETIME(ASCharacter, AbilityIndex);
-	//DOREPLIFETIME(ASCharacter, AbilityClassArray);
-	//DOREPLIFETIME_CONDITION(ASCharacter, AbilityClassArray, COND_OwnerOnly);
-
 	DOREPLIFETIME(ASCharacter, bPlayerDied);
 	DOREPLIFETIME(ASCharacter, bIsZooming);
 	DOREPLIFETIME(ASCharacter, bSprinting);
@@ -812,6 +827,5 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	
 	DOREPLIFETIME(ASCharacter, SwitchWeaponAnim);
 
-	//DOREPLIFETIME_CONDITION(ASCharacter, WeaponClassArray, COND_OwnerOnly);
 	DOREPLIFETIME(ASCharacter, WeaponClassArray);
 }
