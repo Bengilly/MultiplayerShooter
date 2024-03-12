@@ -32,8 +32,8 @@ ASGameMode::ASGameMode()
 void ASGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-
-	StartWarmup();
+	
+	StartMatch();
 }
 
 void ASGameMode::StartPlay()
@@ -51,38 +51,6 @@ void ASGameMode::Tick(float DeltaSeconds)
 	//ScanForAlivePlayers();
 }
 
-//add the player controller to the array when they join the game session
-void ASGameMode::PostLogin(APlayerController* NewPlayerController)
-{
-
-	UE_LOG(LogTemp, Log, TEXT("PostLogin Controller connected: %s"), *FString(NewPlayerController->GetName()));
-
-	Super::PostLogin(NewPlayerController);
-
-	ASPlayerController* ConnectedController = Cast<ASPlayerController>(NewPlayerController);
-	if (ConnectedController)
-	{
-		ConnectedPlayersArray.Add(ConnectedController);
-
-		UE_LOG(LogTemp, Log, TEXT("(Spawning) Player connected: %s"), *FString(ConnectedController->GetName()));
-		UE_LOG(LogTemp, Log, TEXT("(Spawning) Connected players: %d"), ConnectedPlayersArray.Num());
-	}
-}
-
-//remove the player controller from the array when they disconnect
-void ASGameMode::Logout(AController* PlayerController)
-{
-	Super::Logout(PlayerController);
-
-	ASPlayerController* LeavingPlayerController = Cast<ASPlayerController>(PlayerController);
-	if (LeavingPlayerController)
-	{
-		ConnectedPlayersArray.Remove(LeavingPlayerController);
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("Connected players: %d"), ConnectedPlayersArray.Num());
-}
-
 //set the new game state and replicate to other clients
 void ASGameMode::SetGameState(EGameState NewState)
 {
@@ -96,47 +64,10 @@ void ASGameMode::SetGameState(EGameState NewState)
 	}
 }
 
-//Warmup timers
-void ASGameMode::StartWarmup()
-{
-	SetGameState(EGameState::WaitingToStart);
-
-	//start timer for warmup
-	GetWorld()->GetTimerManager().SetTimer(TimerHandler_WarmupTimer, this, &ASGameMode::WarmupTimerInterval, 1.0f, true, 0);
-}
-
-void ASGameMode::WarmupTimerInterval()
-{
-	WarmupDuration -= 1.0f;
-
-	UE_LOG(LogTemp, Log, TEXT("Remaining warmup time: %f"), WarmupDuration);
-
-	if (WarmupDuration <= 0.0f)
-	{
-		//gameover
-		UE_LOG(LogTemp, Log, TEXT("Warmup has ended, game on!"));
-
-		GetWorldTimerManager().ClearTimer(TimerHandler_WarmupTimer);
-
-		StartMatch();
-	}
-
-	ASGameState* GS = GetGameState<ASGameState>();
-	GS->UpdateWarmupTimerToPlayers(WarmupDuration);
-}
-
 //Game timers
 void ASGameMode::StartMatch()
 {
 	SetGameState(EGameState::InProgress);
-
-	for (ASPlayerController* PC : ConnectedPlayersArray)
-	{
-		if (PC)
-		{
-			PC->ServerTogglePlayerInput(false);
-		}
-	}
 
 	//start timer for round
 	GetWorld()->GetTimerManager().SetTimer(TimerHandler_GameTimer, this, &ASGameMode::MatchTimerInterval, 1.0f, true, 0);
@@ -220,6 +151,25 @@ FTransform ASGameMode::FindRandomSpawnLocation()
 	return FTransform::Identity;
 }
 
+//toggle the input for a specific player controller
+void ASGameMode::ToggleControllerInput(ASPlayerController* PlayerController, bool bEnableInput)
+{
+	PlayerController->TogglePlayerInput(bEnableInput);
+}
+
+//toggle the input for all connected player controllers
+void ASGameMode::ToggleControllerInput(TArray<ASPlayerController*> PlayerArray, bool bEnableInput)
+{
+	for (ASPlayerController* PC : PlayerArray)
+	{
+		if (PC)
+		{
+			//PC->ClientTogglePlayerInput(bEnableInput);
+			UE_LOG(LogTemp, Log, TEXT("(Spawning) Controller Input Disabled"));
+		}
+	}
+}
+
 void ASGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -227,6 +177,77 @@ void ASGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	//replicate variables
 	DOREPLIFETIME(ASGameMode, MatchDuration);
 }
+
+
+
+
+
+
+
+//Warmup timers
+//void ASGameMode::StartWarmup()
+//{
+//	SetGameState(EGameState::WaitingToStart);
+//
+//	//start timer for warmup
+//	GetWorld()->GetTimerManager().SetTimer(TimerHandler_WarmupTimer, this, &ASGameMode::WarmupTimerInterval, 1.0f, true, 0);
+//}
+//
+//void ASGameMode::WarmupTimerInterval()
+//{
+//	WarmupDuration -= 1.0f;
+//
+//	UE_LOG(LogTemp, Log, TEXT("Remaining warmup time: %f"), WarmupDuration);
+//
+//	if (WarmupDuration <= 0.0f)
+//	{
+//		//gameover
+//		UE_LOG(LogTemp, Log, TEXT("Warmup has ended, game on!"));
+//
+//		GetWorldTimerManager().ClearTimer(TimerHandler_WarmupTimer);
+//
+//		StartMatch();
+//
+//	}
+//
+//	ASGameState* GS = GetGameState<ASGameState>();
+//	GS->UpdateWarmupTimerToPlayers(WarmupDuration);
+//}
+
+
+
+////add the player controller to the array when they join the game session
+//void ASGameMode::PostLogin(APlayerController* NewPlayerController)
+//{
+//	UE_LOG(LogTemp, Log, TEXT("PostLogin Controller connected: %s"), *FString(NewPlayerController->GetName()));
+//
+//	Super::PostLogin(NewPlayerController);
+//
+//	ASPlayerController* ConnectedController = Cast<ASPlayerController>(NewPlayerController);
+//	if (ConnectedController)
+//	{
+//		ConnectedPlayersArray.Add(ConnectedController);
+//
+//		UE_LOG(LogTemp, Log, TEXT("(Spawning) Player connected: %s"), *FString(ConnectedController->GetName()));
+//		UE_LOG(LogTemp, Log, TEXT("(Spawning) Connected players: %d"), ConnectedPlayersArray.Num());
+//	}
+//}
+//
+////remove the player controller from the array when they disconnect
+//void ASGameMode::Logout(AController* PlayerController)
+//{
+//	Super::Logout(PlayerController);
+//
+//	ASPlayerController* LeavingPlayerController = Cast<ASPlayerController>(PlayerController);
+//	if (LeavingPlayerController)
+//	{
+//		ConnectedPlayersArray.Remove(LeavingPlayerController);
+//	}
+//
+//	UE_LOG(LogTemp, Log, TEXT("Connected players: %d"), ConnectedPlayersArray.Num());
+//}
+
+
 
 //void ASGameMode::SetEnemyWaveState(EEnemyWaveState NewState)
 //{

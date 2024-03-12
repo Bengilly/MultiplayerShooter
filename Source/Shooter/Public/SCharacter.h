@@ -299,10 +299,10 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void PrintControllerClass();
-
 	virtual FVector GetPawnViewLocation() const override;
 
 	void AddPowerupChargeToPlayer(EAbilityPickupType PickupType, int NumberOfCharges);
 
+	UFUNCTION(Client, Reliable)
+	void ClientDisableInput(ASPlayerController* PlayerController);
 };

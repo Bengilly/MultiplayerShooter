@@ -40,7 +40,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_GameState, Category = "GameState")
 	EGameState GameState;
 
-
 	//  ------------ Functions ------------  //
 
 	void SetState(EGameState NewState);
@@ -54,7 +53,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GameState")
 	void UpdateWarmupTimerToPlayers(float Time);
 
-
+	UFUNCTION(BlueprintCallable, Category = "GameState")
+	void UpdateMaxPlayerCount(int Players);
 
 protected:
 
@@ -63,6 +63,9 @@ protected:
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
 	float WarmupTimer;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
+	int MaxPlayerCount;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 

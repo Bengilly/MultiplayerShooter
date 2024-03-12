@@ -687,6 +687,18 @@ void ASCharacter::StartJumping()
 	}
 }
 
+
+
+void ASCharacter::ClientDisableInput_Implementation(ASPlayerController* PlayerController)
+{
+
+	PlayerController->SetIgnoreMoveInput(true);
+	PlayerController->SetIgnoreLookInput(true);
+
+	//DisableInput(PlayerController);
+}
+
+
 // Called to bind functionality to input
 void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -719,28 +731,7 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("UseAbility", IE_Pressed, this, &ASCharacter::UseAbility);
 	PlayerInputComponent->BindAction("SwitchNextAbility", IE_Pressed, this, &ASCharacter::SwitchNextAbility);
-	PlayerInputComponent->BindAction("SwitchPreviousAbility", IE_Pressed, this, &ASCharacter::SwitchPreviousAbility);
-
-	PlayerInputComponent->BindAction("Controller", IE_Pressed, this, &ASCharacter::PrintControllerClass);
-
-	//PlayerInputComponent->BindAction<FUseAbilityDelegate>("UseAbility", IE_Pressed, this, &ASCharacter::UseAbility, Ability);
-	
-}
-
-void ASCharacter::PrintControllerClass()
-{
-	ASPlayerController* PC = Cast<ASPlayerController>(GetController());
-
-	if (PC)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("(ToggleInput) TogglePlayerInputCalledOnController: %s"), *FString(PC->GetName()));
-		PC->TogglePlayerInput(false);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No controller possessing this character."));
-	}
-
+	PlayerInputComponent->BindAction("SwitchPreviousAbility", IE_Pressed, this, &ASCharacter::SwitchPreviousAbility);	
 }
 
 //setup line trace from camera

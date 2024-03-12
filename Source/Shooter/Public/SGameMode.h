@@ -44,7 +44,9 @@ protected:
 	TSet<FVector> UsedSpawnLocations;
 	FTimerHandle TimerHandler_GameTimer;
 	FTimerHandle TimerHandler_WarmupTimer;
+
 	TArray<ASPlayerController*> ConnectedPlayersArray;
+
 
 	//duration of the match in seconds
 	UPROPERTY(Replicated, BlueprintReadOnly, EditDefaultsOnly)
@@ -54,26 +56,21 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly, EditDefaultsOnly)
 	float WarmupDuration;
 
-	//UPROPERTY(BlueprintReadWrite)
-	//int MaxPlayerConnections;
-
-	//UPROPERTY(BlueprintReadOnly)
-	//int CurrentPlayerConnections;
-
 	//  ------------ Functions ------------  //
 
-	//void SpawnPlayersAtSpawnPoints();
-
-	FTransform FindRandomSpawnLocation();
-
-	void StartWarmup();
-	void WarmupTimerInterval();
+	//void StartWarmup();
+	//void WarmupTimerInterval();
 
 	void StartMatch();
 	void MatchTimerInterval();
 
 	void SetGameState(EGameState NewState);
 
+	FTransform FindRandomSpawnLocation();
+	
+	void ToggleControllerInput(TArray<ASPlayerController*> PlayerArray, bool bEnableInput);
+	void ToggleControllerInput(ASPlayerController* PlayerController, bool bEnableInput);
+	
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 
@@ -124,9 +121,9 @@ public:
 	virtual void StartPlay() override;
 	void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
-	virtual void PostLogin(APlayerController* NewPlayerController) override;
 
-	virtual void Logout(AController* PlayerController) override;
+	//virtual void PostLogin(APlayerController* NewPlayerController) override;
+	//virtual void Logout(AController* PlayerController) override;
 
 	UPROPERTY(BlueprintAssignable, Category = "GameMode")
 	FOnActorKilled OnActorKilled;

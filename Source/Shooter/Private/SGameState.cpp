@@ -15,6 +15,11 @@ void ASGameState::UpdateWarmupTimerToPlayers(float Time)
 	WarmupTimer = Time;
 }
 
+void ASGameState::UpdateMaxPlayerCount(int NumOfPlayers)
+{
+	MaxPlayerCount = NumOfPlayers;
+}
+
 //  ------------ Multiplayer Functions ------------  //
 
 void ASGameState::OnRep_GameState(EGameState PreviousState)
@@ -33,6 +38,7 @@ void ASGameState::SetState(EGameState NewState)
 	}
 }
 
+
 void ASGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -41,6 +47,7 @@ void ASGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASGameState, GameState);
 	DOREPLIFETIME(ASGameState, MatchTimer)
 	DOREPLIFETIME(ASGameState, WarmupTimer);
+	DOREPLIFETIME(ASGameState, MaxPlayerCount);
 }
 
 //void ASGameState::OnRep_WaveState(EEnemyWaveState PreviousState)

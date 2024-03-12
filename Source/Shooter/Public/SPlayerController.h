@@ -19,9 +19,6 @@ public:
 
 	void TogglePlayerInput(bool bEnableInput);
 
-	UFUNCTION(Client, Reliable)
-	void ServerTogglePlayerInput(bool bEnableInput);
-
 protected:
 
 	virtual void BeginPlay() override;
@@ -30,10 +27,10 @@ protected:
 
 	void SpawnPlayerCharacter();
 
+	void ManuallyToggleInput();
+
 	//  ------------ Multiplayer Functions ------------  //
 
 	UFUNCTION(Server, Reliable)
-	void ServerSpawnPlayerCharacter();
-
-
+	void ServerSpawnPlayerCharacter();	
 };

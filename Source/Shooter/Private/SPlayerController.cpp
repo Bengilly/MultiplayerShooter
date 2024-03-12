@@ -13,7 +13,7 @@ ASPlayerController::ASPlayerController()
 
 void ASPlayerController::BeginPlay()
 {
-	//Super::BeginPlay();
+	Super::BeginPlay();
 
 	if (IsLocalPlayerController())
 	{
@@ -22,26 +22,14 @@ void ASPlayerController::BeginPlay()
 	}
 }
 
-void ASPlayerController::SetupInputComponent()
-{
-	Super::SetupInputComponent();
-}
-
-void ASPlayerController::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
 void ASPlayerController::SpawnPlayerCharacter()
 {
 	if (GetLocalRole() < ROLE_Authority)
 	{
 		ServerSpawnPlayerCharacter();
-		return;
 	}
 
 	UE_LOG(LogTemp, Log, TEXT("(Spawning) Spawning player..."));
-	//only trigger once for owner of this controller
 	ASGameMode* GameMode = Cast<ASGameMode>(GetWorld()->GetAuthGameMode());
 	if (GameMode)
 	{
@@ -51,7 +39,6 @@ void ASPlayerController::SpawnPlayerCharacter()
 	{
 		UE_LOG(LogTemp, Log, TEXT("(Spawning) Gamemode is null..."));
 	}
-
 }
 
 void ASPlayerController::ServerSpawnPlayerCharacter_Implementation()
@@ -61,8 +48,6 @@ void ASPlayerController::ServerSpawnPlayerCharacter_Implementation()
 
 void ASPlayerController::TogglePlayerInput(bool bEnableInput)
 {
-
-	// Print boolean value to the console
 	UE_LOG(LogTemp, Log, TEXT("(Spawning) Input boolean value: %s"), bEnableInput ? TEXT("True") : TEXT("False"));
 	UE_LOG(LogTemp, Log, TEXT("(Spawning) Apply input change to: %s"), *FString(this->GetName()));
 
@@ -70,7 +55,21 @@ void ASPlayerController::TogglePlayerInput(bool bEnableInput)
 	SetIgnoreLookInput(!bEnableInput);
 }
 
-void ASPlayerController::ServerTogglePlayerInput_Implementation(bool bEnableInput)
+void ASPlayerController::SetupInputComponent()
 {
-	TogglePlayerInput(bEnableInput);
+	Super::SetupInputComponent();
+
+	InputComponent->BindAction("ToggleInput", IE_Pressed, this, &ASPlayerController::ManuallyToggleInput);
+}
+
+
+void ASPlayerController::ManuallyToggleInput()
+{
+	TogglePlayerInput(false);
+}
+
+
+void ASPlayerController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 }
