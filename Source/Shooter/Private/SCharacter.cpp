@@ -688,14 +688,18 @@ void ASCharacter::StartJumping()
 }
 
 
+//stops player moving once level has loaded. This is re-enabled in the game mode once freeze timer ends/game starts
+void ASCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	ASPlayerController* PC = Cast<ASPlayerController>(NewController);
+	ClientDisableInput(PC);
+}
 
 void ASCharacter::ClientDisableInput_Implementation(ASPlayerController* PlayerController)
 {
-
-	PlayerController->SetIgnoreMoveInput(true);
-	PlayerController->SetIgnoreLookInput(true);
-
-	//DisableInput(PlayerController);
+	this->DisableInput(PlayerController);
 }
 
 

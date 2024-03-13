@@ -30,10 +30,6 @@ public:
 
 	void SpawnPlayer(ASPlayerController* PlayerController);
 
-	UFUNCTION(BlueprintPure, Category = "Match Timer")
-	float GetRemainingMatchTime() const;
-
-	
 protected:
 
 	//  ------------ Variables ------------  //
@@ -44,6 +40,7 @@ protected:
 	TSet<FVector> UsedSpawnLocations;
 	FTimerHandle TimerHandler_GameTimer;
 	FTimerHandle TimerHandler_WarmupTimer;
+	FTimerHandle TimerHandler_FreezeTimer;
 
 	TArray<ASPlayerController*> ConnectedPlayersArray;
 
@@ -52,9 +49,8 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly, EditDefaultsOnly)
 	float MatchDuration;
 
-	//duration of the match in seconds
 	UPROPERTY(Replicated, BlueprintReadOnly, EditDefaultsOnly)
-	float WarmupDuration;
+	float FreezeDuration;
 
 	//  ------------ Functions ------------  //
 
@@ -62,15 +58,14 @@ protected:
 	//void WarmupTimerInterval();
 
 	void StartMatch();
+	void StartFreezeTimer();
+	void FreezeTimerInterval();
 	void MatchTimerInterval();
 
 	void SetGameState(EGameState NewState);
 
 	FTransform FindRandomSpawnLocation();
-	
-	void ToggleControllerInput(TArray<ASPlayerController*> PlayerArray, bool bEnableInput);
-	void ToggleControllerInput(ASPlayerController* PlayerController, bool bEnableInput);
-	
+
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 

@@ -17,7 +17,8 @@ class SHOOTER_API ASPlayerController : public APlayerController
 public:
 	ASPlayerController();
 
-	void TogglePlayerInput(bool bEnableInput);
+	UFUNCTION(Client, Unreliable)
+	void ClientEnablePlayerInput();
 
 protected:
 
@@ -27,10 +28,10 @@ protected:
 
 	void SpawnPlayerCharacter();
 
-	void ManuallyToggleInput();
-
 	//  ------------ Multiplayer Functions ------------  //
 
 	UFUNCTION(Server, Reliable)
 	void ServerSpawnPlayerCharacter();	
+
+
 };

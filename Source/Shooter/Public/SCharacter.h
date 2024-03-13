@@ -303,6 +303,9 @@ public:
 
 	void AddPowerupChargeToPlayer(EAbilityPickupType PickupType, int NumberOfCharges);
 
-	UFUNCTION(Client, Reliable)
+
+	virtual void PossessedBy(AController* NewController) override;
+
+	UFUNCTION(Client, Unreliable)
 	void ClientDisableInput(ASPlayerController* PlayerController);
 };

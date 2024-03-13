@@ -26,14 +26,14 @@ ASGameMode::ASGameMode()
 	PrimaryActorTick.bCanEverTick = true;
 
 	MatchDuration = 60.0f;
-	WarmupDuration = 15.0f;
+	FreezeDuration = 10.0f;
 }
 
 void ASGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	StartMatch();
+	StartFreezeTimer();
 }
 
 void ASGameMode::StartPlay()
@@ -64,10 +64,49 @@ void ASGameMode::SetGameState(EGameState NewState)
 	}
 }
 
-//Game timers
+//start freeze timer once level loads and update UI
+void ASGameMode::StartFreezeTimer()
+{
+	GetWorld()->GetTimerManager().SetTimer(TimerHandler_FreezeTimer, this, &ASGameMode::FreezeTimerInterval, 1.0f, true, 0);
+}
+
+void ASGameMode::FreezeTimerInterval()
+{
+	FreezeDuration -= 1.0f;
+
+	UE_LOG(LogTemp, Log, TEXT("Freeze time remaining: %f"), FreezeDuration);
+
+	if (FreezeDuration <= 0.0f)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Freeze time has ended!"));
+
+		GetWorldTimerManager().ClearTimer(TimerHandler_FreezeTimer);
+
+		StartMatch();
+	}
+
+	ASGameState* GS = GetGameState<ASGameState>();
+	GS->UpdateFreezeTimerToPlayers(FreezeDuration);
+}
+
+
 void ASGameMode::StartMatch()
 {
 	SetGameState(EGameState::InProgress);
+
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		// iterate over all player controllers and enable input
+		for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
+		{
+			ASPlayerController* PC = Cast<ASPlayerController>(It->Get());
+			if (PC)
+			{
+				PC->ClientEnablePlayerInput();
+			}
+		}
+	}
 
 	//start timer for round
 	GetWorld()->GetTimerManager().SetTimer(TimerHandler_GameTimer, this, &ASGameMode::MatchTimerInterval, 1.0f, true, 0);
@@ -92,11 +131,6 @@ void ASGameMode::MatchTimerInterval()
 
 	ASGameState* GS = GetGameState<ASGameState>();
 	GS->UpdateMatchTimerToPlayers(MatchDuration);
-}
-
-float ASGameMode::GetRemainingMatchTime() const
-{
-	return MatchDuration;
 }
 
 //handle the spawning of player pawn on the server
@@ -149,25 +183,6 @@ FTransform ASGameMode::FindRandomSpawnLocation()
 		}
 	}
 	return FTransform::Identity;
-}
-
-//toggle the input for a specific player controller
-void ASGameMode::ToggleControllerInput(ASPlayerController* PlayerController, bool bEnableInput)
-{
-	PlayerController->TogglePlayerInput(bEnableInput);
-}
-
-//toggle the input for all connected player controllers
-void ASGameMode::ToggleControllerInput(TArray<ASPlayerController*> PlayerArray, bool bEnableInput)
-{
-	for (ASPlayerController* PC : PlayerArray)
-	{
-		if (PC)
-		{
-			//PC->ClientTogglePlayerInput(bEnableInput);
-			UE_LOG(LogTemp, Log, TEXT("(Spawning) Controller Input Disabled"));
-		}
-	}
 }
 
 void ASGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

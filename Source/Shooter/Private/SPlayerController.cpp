@@ -46,28 +46,18 @@ void ASPlayerController::ServerSpawnPlayerCharacter_Implementation()
 	SpawnPlayerCharacter();
 }
 
-void ASPlayerController::TogglePlayerInput(bool bEnableInput)
-{
-	UE_LOG(LogTemp, Log, TEXT("(Spawning) Input boolean value: %s"), bEnableInput ? TEXT("True") : TEXT("False"));
-	UE_LOG(LogTemp, Log, TEXT("(Spawning) Apply input change to: %s"), *FString(this->GetName()));
 
-	SetIgnoreMoveInput(!bEnableInput);
-	SetIgnoreLookInput(!bEnableInput);
+//enable controller input for owning client
+void ASPlayerController::ClientEnablePlayerInput_Implementation()
+{
+	this->GetPawn()->EnableInput(this);
 }
 
 void ASPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	InputComponent->BindAction("ToggleInput", IE_Pressed, this, &ASPlayerController::ManuallyToggleInput);
 }
-
-
-void ASPlayerController::ManuallyToggleInput()
-{
-	TogglePlayerInput(false);
-}
-
 
 void ASPlayerController::Tick(float DeltaTime)
 {

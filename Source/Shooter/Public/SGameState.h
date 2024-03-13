@@ -56,10 +56,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GameState")
 	void UpdateMaxPlayerCount(int Players);
 
+	UFUNCTION(BlueprintCallable, Category = "GameState")
+	void UpdateFreezeTimerToPlayers(float Time);
+
 protected:
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
 	float MatchTimer;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
+	float FreezeTimer;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
 	float WarmupTimer;

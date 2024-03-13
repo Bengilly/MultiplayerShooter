@@ -20,6 +20,11 @@ void ASGameState::UpdateMaxPlayerCount(int NumOfPlayers)
 	MaxPlayerCount = NumOfPlayers;
 }
 
+void ASGameState::UpdateFreezeTimerToPlayers(float Time)
+{
+	FreezeTimer = Time;
+}
+
 //  ------------ Multiplayer Functions ------------  //
 
 void ASGameState::OnRep_GameState(EGameState PreviousState)
@@ -45,6 +50,7 @@ void ASGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 	//replicate variables
 	DOREPLIFETIME(ASGameState, GameState);
+	DOREPLIFETIME(ASGameState, FreezeTimer)
 	DOREPLIFETIME(ASGameState, MatchTimer)
 	DOREPLIFETIME(ASGameState, WarmupTimer);
 	DOREPLIFETIME(ASGameState, MaxPlayerCount);
