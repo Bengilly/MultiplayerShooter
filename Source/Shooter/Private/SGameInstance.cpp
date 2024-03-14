@@ -8,3 +8,8 @@ USGameInstance::USGameInstance()
 {
 	
 }
+
+//void USGameInstance::ChangePlayerName(FText PlayerName)
+//{
+//
+//}

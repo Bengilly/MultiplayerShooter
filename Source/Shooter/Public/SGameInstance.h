@@ -20,4 +20,8 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	int MaxPlayers;
+
+protected:
+
+	//void ChangePlayerName(FText PlayerName);
 };

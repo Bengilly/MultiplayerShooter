@@ -90,12 +90,14 @@ void ASGameModeLobby::PostLogin(APlayerController* NewPlayerController)
 		ConnectedPlayersArray.Add(NewPlayerController);
 	}
 
+	//update the number of max players on the lobby screen
 	USGameInstance* GI = Cast<USGameInstance>(GetGameInstance());
 	MaxConnectedPlayers = GI->MaxPlayers;
 
 	ASGameState* GS = GetGameState<ASGameState>();
 	GS->UpdateMaxPlayerCount(MaxConnectedPlayers);
-
+	
+	//start game once all players have connected to the session
 	if (MaxConnectedPlayers == ConnectedPlayersArray.Num())
 	{
 		StartWarmup();
