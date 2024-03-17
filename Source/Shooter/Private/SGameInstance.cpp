@@ -6,7 +6,7 @@
 
 USGameInstance::USGameInstance()
 {
-	
+	MaxPlayers = 2;
 }
 
 //void USGameInstance::ChangePlayerName(FText PlayerName)

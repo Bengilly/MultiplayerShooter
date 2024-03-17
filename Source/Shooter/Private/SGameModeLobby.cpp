@@ -6,6 +6,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "SPlayerController.h"
+#include "SPlayerControllerLobby.h"
 #include "SGameInstance.h"
 
 ASGameModeLobby::ASGameModeLobby()
@@ -80,14 +81,14 @@ void ASGameModeLobby::ServerTravelToMap(const FString& MapName)
 //add the player controller to the array when they join the game session
 void ASGameModeLobby::PostLogin(APlayerController* NewPlayerController)
 {
-	UE_LOG(LogTemp, Log, TEXT("PostLogin Controller connected: %s"), *FString(NewPlayerController->GetName()));
-
 	Super::PostLogin(NewPlayerController);
 
-	//ASPlayerController* ConnectedController = Cast<ASPlayerController>(NewPlayerController);
-	if (NewPlayerController)
+	ASPlayerControllerLobby* LobbyPC = Cast<ASPlayerControllerLobby>(NewPlayerController);
+	UE_LOG(LogTemp, Log, TEXT("PostLogin Controller connected: %s"), *FString(LobbyPC->GetName()));
+
+	if (LobbyPC)
 	{
-		ConnectedPlayersArray.Add(NewPlayerController);
+		ConnectedPlayersArray.Add(LobbyPC);
 	}
 
 	//update the number of max players on the lobby screen
@@ -110,7 +111,7 @@ void ASGameModeLobby::Logout(AController* PlayerController)
 {
 	Super::Logout(PlayerController);
 
-	APlayerController* LeavingPlayerController = Cast<APlayerController>(PlayerController);
+	ASPlayerControllerLobby* LeavingPlayerController = Cast<ASPlayerControllerLobby>(PlayerController);
 	if (LeavingPlayerController)
 	{
 		ConnectedPlayersArray.Remove(LeavingPlayerController);

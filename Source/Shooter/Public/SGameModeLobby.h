@@ -12,7 +12,7 @@
 
 //forward delcare enum class in gamestate
 enum class EGameState : uint8;
-class ASPlayerController;
+class ASPlayerControllerLobby;
 
 UCLASS()
 class SHOOTER_API ASGameModeLobby : public AGameModeBase
@@ -26,7 +26,7 @@ public:
 	int MaxConnectedPlayers;
 
 	UPROPERTY(BlueprintReadOnly)
-	TArray<APlayerController*> ConnectedPlayersArray;
+	TArray<ASPlayerControllerLobby*> ConnectedPlayersArray;
 protected:
 
 	ASGameModeLobby();
