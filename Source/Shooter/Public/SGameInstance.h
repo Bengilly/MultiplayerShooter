@@ -4,11 +4,39 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Interfaces/OnlineSessionInterface.h"
+#include "OnlineSubsystemUtils.h"
+#include "OnlineSubsystem.h"
+#include "OnlineSessionSettings.h"
+#include "SPlayerProfile.h"
+#include "SSaveGamePlayerProfile.h"
 #include "SGameInstance.generated.h"
 
-/**
- * 
- */
+
+class USSaveGamePlayerProfile;
+struct FSPlayerProfileStruct;
+class FOnlineSessionSearchResult;
+
+USTRUCT(BlueprintType)
+struct FSSessionSearchResults
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	FString ResultSessionName;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 NumOpenSlots;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 NumMaxSlots;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 Ping;
+};
+
+
 UCLASS()
 class SHOOTER_API USGameInstance : public UGameInstance
 {
@@ -21,7 +49,54 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	int MaxPlayers;
 
+	UPROPERTY(BlueprintReadWrite)
+	FName SessionName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FSPlayerProfileStruct PlayerProfileStruct;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Session Results")
+	FSSessionSearchResults SessionSearchResults;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Session Results")
+	TArray<FSSessionSearchResults> SessionSearchResultsArray;
+
+
 protected:
 
-	//void ChangePlayerName(FText PlayerName);
+	//  ------------ Variables ------------  //
+
+	FString PlayerProfileSlot;
+	USSaveGamePlayerProfile* SGPlayerProfile;
+	IOnlineSessionPtr SessionInterface;
+	TSharedPtr<FOnlineSessionSearch> OnlineSessionSearch;
+
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsLanEnabled;
+
+	//  ------------ Functions ------------  //
+
+	virtual void Init() override;
+	virtual void OnCreateSessionComplete(FName Name, bool bSucceeded);
+	virtual void OnFindSessionComplete(bool bSucceeded);
+	virtual void OnJoinSessionComplete(FName Name, EOnJoinSessionCompleteResult::Type Result);
+
+	UFUNCTION(BlueprintCallable)
+	void CreateMultiplayerSession();
+
+	UFUNCTION(BlueprintCallable)
+	TArray<FSSessionSearchResults> FindMultiplayerSession();
+
+	void SavePlayerProfile();
+
+	USSaveGamePlayerProfile* LoadPlayerProfile();
+
+	UFUNCTION(BlueprintCallable)
+	void ChangePlayerName(FString PlayerName);
+
+	UFUNCTION(BlueprintCallable)
+	void CheckForSavedProfile();
+
+	//  ------------ UI ------------  //
 };

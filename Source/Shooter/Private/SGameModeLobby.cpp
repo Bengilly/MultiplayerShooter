@@ -89,7 +89,11 @@ void ASGameModeLobby::PostLogin(APlayerController* NewPlayerController)
 	if (LobbyPC)
 	{
 		ConnectedPlayersArray.Add(LobbyPC);
+		LobbyPC->ClientCreateLobbyMenu_Implementation();
+		LobbyPC->ClientInitialPlayerSetup_Implementation();
+		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("ClientCreateLobbyMenu + ClientInitialPlayerSetup")));
 	}
+
 
 	//update the number of max players on the lobby screen
 	USGameInstance* GI = Cast<USGameInstance>(GetGameInstance());
@@ -103,7 +107,6 @@ void ASGameModeLobby::PostLogin(APlayerController* NewPlayerController)
 	{
 		StartWarmup();
 	}
-	
 }
 
 //remove the player controller from the array when they disconnect
@@ -115,5 +118,23 @@ void ASGameModeLobby::Logout(AController* PlayerController)
 	if (LeavingPlayerController)
 	{
 		ConnectedPlayersArray.Remove(LeavingPlayerController);
+	}
+}
+
+void ASGameModeLobby::UpdateLobby(bool bUpdatePlayerNames)
+{
+	if (bUpdatePlayerNames)
+	{
+		AllPlayerProfileStructs.Empty();
+
+		for (ASPlayerControllerLobby* LobbyPC : ConnectedPlayersArray)
+		{
+			AllPlayerProfileStructs.Add(LobbyPC->PlayerProfileStruct);
+		}
+
+		for (ASPlayerControllerLobby* LobbyPC : ConnectedPlayersArray)
+		{
+			LobbyPC->ClientUpdatePlayerNames_Implementation(AllPlayerProfileStructs);
+		}
 	}
 }

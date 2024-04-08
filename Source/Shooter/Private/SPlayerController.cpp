@@ -30,10 +30,10 @@ void ASPlayerController::SpawnPlayerCharacter()
 	}
 
 	UE_LOG(LogTemp, Log, TEXT("(Spawning) Spawning player..."));
-	ASGameMode* GameMode = Cast<ASGameMode>(GetWorld()->GetAuthGameMode());
-	if (GameMode)
+	ASGameMode* GM = Cast<ASGameMode>(GetWorld()->GetAuthGameMode());
+	if (GM)
 	{
-		GameMode->SpawnPlayer(this);
+		GM->SpawnPlayer(this);
 	}
 	else
 	{
