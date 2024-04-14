@@ -59,6 +59,12 @@ void ASGameModeLobby::WarmupTimerInterval()
 
 		GetWorldTimerManager().ClearTimer(TimerHandler_WarmupTimer);
 
+		//show loading screen for each player connected
+		for (ASPlayerControllerLobby* LobbyPC : ConnectedPlayersArray)
+		{
+			LobbyPC->ClientShowLoadingScreen();
+		}
+
 		ServerTravelToMap("Level_Forest");
 	}
 }
@@ -89,9 +95,9 @@ void ASGameModeLobby::PostLogin(APlayerController* NewPlayerController)
 	if (LobbyPC)
 	{
 		ConnectedPlayersArray.Add(LobbyPC);
-		LobbyPC->ClientCreateLobbyMenu_Implementation();
-		LobbyPC->ClientInitialPlayerSetup_Implementation();
-		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("ClientCreateLobbyMenu + ClientInitialPlayerSetup")));
+		LobbyPC->ClientCreateLobbyMenu();
+		LobbyPC->ClientInitialPlayerSetup();
+		//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("ClientCreateLobbyMenu + ClientInitialPlayerSetup")));
 	}
 
 
@@ -119,14 +125,19 @@ void ASGameModeLobby::Logout(AController* PlayerController)
 	{
 		ConnectedPlayersArray.Remove(LeavingPlayerController);
 	}
+
+	UpdateLobby(true);
 }
 
 void ASGameModeLobby::UpdateLobby(bool bUpdatePlayerNames)
 {
 	if (bUpdatePlayerNames)
 	{
-		AllPlayerProfileStructs.Empty();
-
+		if (AllPlayerProfileStructs.Num())
+		{
+			AllPlayerProfileStructs.Empty();
+		}
+		
 		for (ASPlayerControllerLobby* LobbyPC : ConnectedPlayersArray)
 		{
 			AllPlayerProfileStructs.Add(LobbyPC->PlayerProfileStruct);
@@ -134,7 +145,7 @@ void ASGameModeLobby::UpdateLobby(bool bUpdatePlayerNames)
 
 		for (ASPlayerControllerLobby* LobbyPC : ConnectedPlayersArray)
 		{
-			LobbyPC->ClientUpdatePlayerNames_Implementation(AllPlayerProfileStructs);
+			LobbyPC->ClientUpdatePlayerNames(AllPlayerProfileStructs);
 		}
 	}
 }

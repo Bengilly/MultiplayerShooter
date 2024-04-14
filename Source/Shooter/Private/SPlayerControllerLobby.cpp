@@ -28,7 +28,7 @@ void ASPlayerControllerLobby::LoadSavedProfile()
 
 	USSaveGamePlayerProfile* PlayerSaveGame = Cast<USSaveGamePlayerProfile>(SaveGame);
 	PlayerProfileStruct = PlayerSaveGame->PlayerProfileInfoStruct;
-	GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(PlayerControllerLobby) Player profile loaded")));
+	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(PlayerControllerLobby) Player profile loaded")));
 }
 
 //Server - Update lobby widget with connected player names
@@ -38,7 +38,7 @@ void ASPlayerControllerLobby::ServerUpdateLobby_Implementation(FSPlayerProfileSt
 
 	ASGameModeLobby* GM = Cast<ASGameModeLobby>(GetWorld()->GetAuthGameMode());
 	GM->UpdateLobby(true);
-	GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("ServerUpdateLobby called")));
+	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("ServerUpdateLobby called")));
 }
 
 void ASPlayerControllerLobby::ClientCreateLobbyMenu_Implementation()
@@ -46,11 +46,16 @@ void ASPlayerControllerLobby::ClientCreateLobbyMenu_Implementation()
 	ShowLobbyMenu();
 }
 
+void ASPlayerControllerLobby::ClientShowLoadingScreen_Implementation()
+{
+	ShowLoadingScreen();
+}
+
 //Client - Load saved profile and tell server to update lobby list
 void ASPlayerControllerLobby::ClientInitialPlayerSetup_Implementation()
-{
+{ 
 	LoadSavedProfile();
-	ServerUpdateLobby_Implementation(PlayerProfileStruct);
+	ServerUpdateLobby(PlayerProfileStruct);
 }
 
 void ASPlayerControllerLobby::ClientUpdatePlayerNames_Implementation(const TArray<FSPlayerProfileStruct>& AllPlayerProfileStructs)

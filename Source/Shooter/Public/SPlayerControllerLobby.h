@@ -30,17 +30,25 @@ public:
 	UFUNCTION(Client, Unreliable)
 	void ClientInitialPlayerSetup();
 	
-	UFUNCTION(Client, Unreliable)
+	UFUNCTION(Client, Reliable)
 	void ClientUpdatePlayerNames(const TArray<FSPlayerProfileStruct>& AllPlayerProfileStructs);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void UpdatePlayerNames(const TArray<FSPlayerProfileStruct>& AllPlayerProfileStructs);
 
+	//Show lobby menu on client PC
 	UFUNCTION(Client, Unreliable)
 	void ClientCreateLobbyMenu();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowLobbyMenu();
+
+	//Show loading screen on client PC 
+	UFUNCTION(Client, Unreliable)
+	void ClientShowLoadingScreen();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowLoadingScreen();
 
 protected:
 

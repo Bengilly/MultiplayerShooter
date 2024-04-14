@@ -32,7 +32,7 @@ void USGameInstance::Init()
 		}
 	}
 }
-
+ 
 void USGameInstance::CreateMultiplayerSession()
 {
 	UE_LOG(LogTemp, Log, TEXT("(Session) Creating multiplayer server..."));
@@ -48,23 +48,20 @@ void USGameInstance::CreateMultiplayerSession()
 	SessionInterface->CreateSession(0, SessionName, SessionSettings);
 }
 
+//perform server travel to load level on session creation
 void USGameInstance::OnCreateSessionComplete(FName Name, bool bSucceeded)
 {
 	UE_LOG(LogTemp, Log, TEXT("(Session) Session created successfully: %d"), bSucceeded);
 	if (bSucceeded)
 	{
-		GetWorld()->ServerTravel("/Game/Maps/Level_Lobby?listen");
-		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Loading Level_Lobby...")));
+		const FString& MapName = "Level_Lobby";
+		if (UWorld* World = GetWorld())
+		{
+			FString URL = FString::Printf(TEXT("/Game/Maps/%s?listen"), *MapName);
+			World->ServerTravel(URL, true, false);
 
-		//UGameplayStatics::OpenLevel(GetWorld(), FName("Level_Lobby"),true);
-
-		 //perform server travel to load lobby level
-		//const FString& MapName = "Level_Lobby";
-		//if (UWorld* World = GetWorld())
-		//{
-		//	FString URL = FString::Printf(TEXT("/Game/Maps/%s?listen"), *MapName);
-		//	World->ServerTravel(URL, true, false);
-		//}
+			//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Loading Level_Lobby...")));
+		}
 	}
 }
 
@@ -79,7 +76,7 @@ TArray<FSSessionSearchResults> USGameInstance::FindMultiplayerSession()
 
 	SessionInterface->FindSessions(0, OnlineSessionSearch.ToSharedRef());
 
-	GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("return SessionSearchResultsArray")));
+	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("return SessionSearchResultsArray")));
 	return SessionSearchResultsArray;
 }
 
@@ -89,7 +86,7 @@ void USGameInstance::OnFindSessionComplete(bool bSucceeded)
 	{
 		TArray<FOnlineSessionSearchResult> SearchResults = OnlineSessionSearch->SearchResults;
 
-		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Sessions found: %d"), SearchResults.Num()));
+		//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Sessions found: %d"), SearchResults.Num()));
 
 		if (SearchResults.Num())
 		{
@@ -100,10 +97,10 @@ void USGameInstance::OnFindSessionComplete(bool bSucceeded)
 				SessionSearchResults.NumMaxSlots = SearchResult.Session.SessionSettings.NumPublicConnections;
 				SessionSearchResults.Ping = SearchResult.PingInMs;
 
-				GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("NumOpenSlots: %d"), SessionSearchResults.NumOpenSlots));
-				GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("NumMaxSlots: %d"), SessionSearchResults.NumMaxSlots));
-				GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Ping: %d"), SessionSearchResults.Ping));
-				GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("ResultSessionName: %s"), *SessionSearchResults.ResultSessionName));
+				//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("NumOpenSlots: %d"), SessionSearchResults.NumOpenSlots));
+				//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("NumMaxSlots: %d"), SessionSearchResults.NumMaxSlots));
+				//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Ping: %d"), SessionSearchResults.Ping));
+				//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("ResultSessionName: %s"), *SessionSearchResults.ResultSessionName));
 
 				SessionSearchResultsArray.Add(SessionSearchResults);
 			}
@@ -124,7 +121,7 @@ void USGameInstance::OnJoinSessionComplete(FName Name, EOnJoinSessionCompleteRes
 			if (ConnectionAddress != "")
 			{
 				PC->ClientTravel(ConnectionAddress, ETravelType::TRAVEL_Absolute);
-				GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Session joined")));
+				//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Session joined")));
 			}
 		}
 		//FString ServerMapName = "Level_Lobby";

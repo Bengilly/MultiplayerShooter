@@ -29,6 +29,7 @@ public:
 	float WarmupDuration;
 	int MaxConnectedPlayers;
 
+
 	UPROPERTY(BlueprintReadOnly)
 	TArray<ASPlayerControllerLobby*> ConnectedPlayersArray;
 
