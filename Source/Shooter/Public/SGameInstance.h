@@ -24,6 +24,9 @@ struct FSSessionSearchResults
 
 public:
 	UPROPERTY(BlueprintReadOnly)
+	int32 ResultSessionIndex;
+
+	UPROPERTY(BlueprintReadOnly)
 	FString ResultSessionName;
 
 	UPROPERTY(BlueprintReadOnly)
@@ -35,6 +38,8 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	int32 Ping;
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FServerDelegate, FSSessionSearchResults, ServerListDelegate);
 
 
 UCLASS()
@@ -70,6 +75,10 @@ protected:
 	USSaveGamePlayerProfile* SGPlayerProfile;
 	IOnlineSessionPtr SessionInterface;
 	TSharedPtr<FOnlineSessionSearch> OnlineSessionSearch;
+	TArray<FOnlineSessionSearchResult> SearchResults;
+
+	UPROPERTY(BlueprintAssignable)
+	FServerDelegate ServerListDelegate;
 
 
 	UPROPERTY(BlueprintReadWrite)
@@ -87,6 +96,9 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	TArray<FSSessionSearchResults> FindMultiplayerSession();
+
+	UFUNCTION(BlueprintCallable)
+	void JoinSession(int32 SessionIndex);
 
 	void SavePlayerProfile();
 

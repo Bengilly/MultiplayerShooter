@@ -84,14 +84,16 @@ void USGameInstance::OnFindSessionComplete(bool bSucceeded)
 {
 	if (bSucceeded)
 	{
-		TArray<FOnlineSessionSearchResult> SearchResults = OnlineSessionSearch->SearchResults;
+		SearchResults = OnlineSessionSearch->SearchResults;
 
 		//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Sessions found: %d"), SearchResults.Num()));
 
 		if (SearchResults.Num())
 		{
+			int32 SessionResultIndex = 0;		//used as a unique identifier for each session so users connect to the correct one
 			for (FOnlineSessionSearchResult SearchResult : SearchResults)
 			{
+				SessionSearchResults.ResultSessionIndex = SessionResultIndex;
 				SessionSearchResults.ResultSessionName = SearchResult.Session.OwningUserName;
 				SessionSearchResults.NumOpenSlots = SearchResult.Session.NumOpenPublicConnections;
 				SessionSearchResults.NumMaxSlots = SearchResult.Session.SessionSettings.NumPublicConnections;
@@ -103,11 +105,23 @@ void USGameInstance::OnFindSessionComplete(bool bSucceeded)
 				//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("ResultSessionName: %s"), *SessionSearchResults.ResultSessionName));
 
 				SessionSearchResultsArray.Add(SessionSearchResults);
+				ServerListDelegate.Broadcast(SessionSearchResults);
+				SessionResultIndex += 1;
 			}
-			SessionInterface->JoinSession(0, FName(*SessionSearchResults.ResultSessionName), SearchResults[0]);
 		}
-
 	}
+}
+
+//find which session has been selected from the UI and join
+void USGameInstance::JoinSession(int32 SessionIndex)
+{
+	for (int i = 0; i < SearchResults.Num(); i++)
+	{
+		if (i == SessionIndex)
+		{
+			SessionInterface->JoinSession(0, FName(*SessionSearchResults.ResultSessionName), SearchResults[i]);
+		}
+	}	
 }
 
 void USGameInstance::OnJoinSessionComplete(FName Name, EOnJoinSessionCompleteResult::Type Result)
@@ -124,8 +138,6 @@ void USGameInstance::OnJoinSessionComplete(FName Name, EOnJoinSessionCompleteRes
 				//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Session joined")));
 			}
 		}
-		//FString ServerMapName = "Level_Lobby";
-		//UGameplayStatics::OpenLevel(GetWorld(), FName(*ServerMapName));
 	}
 }
 

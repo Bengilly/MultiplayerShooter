@@ -41,11 +41,13 @@ void ASPlayerControllerLobby::ServerUpdateLobby_Implementation(FSPlayerProfileSt
 	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("ServerUpdateLobby called")));
 }
 
+//calls blueprint function on client to load lobby menu widget
 void ASPlayerControllerLobby::ClientCreateLobbyMenu_Implementation()
 {
 	ShowLobbyMenu();
 }
 
+//calls blueprint function on client to load loading screen widget
 void ASPlayerControllerLobby::ClientShowLoadingScreen_Implementation()
 {
 	ShowLoadingScreen();
