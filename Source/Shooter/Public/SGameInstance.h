@@ -30,7 +30,7 @@ public:
 	FString ResultSessionName;
 
 	UPROPERTY(BlueprintReadOnly)
-	int32 NumOpenSlots;
+	int32 NumCurrentPlayers;
 
 	UPROPERTY(BlueprintReadOnly)
 	int32 NumMaxSlots;
@@ -54,8 +54,8 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	int MaxPlayers;
 
-	UPROPERTY(BlueprintReadWrite)
-	FName SessionName;
+	//UPROPERTY(BlueprintReadWrite)
+	//FName SessionName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FSPlayerProfileStruct PlayerProfileStruct;
@@ -92,10 +92,10 @@ protected:
 	virtual void OnJoinSessionComplete(FName Name, EOnJoinSessionCompleteResult::Type Result);
 
 	UFUNCTION(BlueprintCallable)
-	void CreateMultiplayerSession();
+	void CreateMultiplayerSession(FName SessionName);
 
 	UFUNCTION(BlueprintCallable)
-	TArray<FSSessionSearchResults> FindMultiplayerSession();
+	void FindMultiplayerSession();
 
 	UFUNCTION(BlueprintCallable)
 	void JoinSession(int32 SessionIndex);

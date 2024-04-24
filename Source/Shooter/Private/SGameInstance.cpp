@@ -33,7 +33,7 @@ void USGameInstance::Init()
 	}
 }
  
-void USGameInstance::CreateMultiplayerSession()
+void USGameInstance::CreateMultiplayerSession(FName SessionName)
 {
 	UE_LOG(LogTemp, Log, TEXT("(Session) Creating multiplayer server..."));
 
@@ -44,6 +44,8 @@ void USGameInstance::CreateMultiplayerSession()
 	SessionSettings.bShouldAdvertise = true;
 	SessionSettings.bUsesPresence = true;
 	SessionSettings.NumPublicConnections = MaxPlayers;		//pull from UI
+
+	SessionSettings.Set(FName("SESSION_NAME_KEY"), SessionName.ToString(), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 	SessionInterface->CreateSession(0, SessionName, SessionSettings);
 }
@@ -65,7 +67,7 @@ void USGameInstance::OnCreateSessionComplete(FName Name, bool bSucceeded)
 	}
 }
 
-TArray<FSSessionSearchResults> USGameInstance::FindMultiplayerSession()
+void USGameInstance::FindMultiplayerSession()
 {
 	UE_LOG(LogTemp, Log, TEXT("(Session) Finding multiplayer server..."));
 
@@ -77,7 +79,6 @@ TArray<FSSessionSearchResults> USGameInstance::FindMultiplayerSession()
 	SessionInterface->FindSessions(0, OnlineSessionSearch.ToSharedRef());
 
 	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("return SessionSearchResultsArray")));
-	return SessionSearchResultsArray;
 }
 
 void USGameInstance::OnFindSessionComplete(bool bSucceeded)
@@ -93,10 +94,15 @@ void USGameInstance::OnFindSessionComplete(bool bSucceeded)
 			int32 SessionResultIndex = 0;		//used as a unique identifier for each session so users connect to the correct one
 			for (FOnlineSessionSearchResult SearchResult : SearchResults)
 			{
+				
+				//get the session name from the search result using a key and store this in a variable
+				FString SessionName = "No Session Name";
+				SearchResult.Session.SessionSettings.Get(FName("SESSION_NAME_KEY"), SessionName);
+				SessionSearchResults.ResultSessionName = SessionName;
+
 				SessionSearchResults.ResultSessionIndex = SessionResultIndex;
-				SessionSearchResults.ResultSessionName = SearchResult.Session.OwningUserName;
-				SessionSearchResults.NumOpenSlots = SearchResult.Session.NumOpenPublicConnections;
 				SessionSearchResults.NumMaxSlots = SearchResult.Session.SessionSettings.NumPublicConnections;
+				SessionSearchResults.NumCurrentPlayers = SearchResult.Session.SessionSettings.NumPublicConnections - SearchResult.Session.NumOpenPublicConnections + 1;		//add 1 for server
 				SessionSearchResults.Ping = SearchResult.PingInMs;
 
 				//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("NumOpenSlots: %d"), SessionSearchResults.NumOpenSlots));
@@ -105,6 +111,8 @@ void USGameInstance::OnFindSessionComplete(bool bSucceeded)
 				//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("ResultSessionName: %s"), *SessionSearchResults.ResultSessionName));
 
 				SessionSearchResultsArray.Add(SessionSearchResults);
+
+				//trigger event to load server widgets
 				ServerListDelegate.Broadcast(SessionSearchResults);
 				SessionResultIndex += 1;
 			}
