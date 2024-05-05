@@ -26,13 +26,19 @@ ASGameMode::ASGameMode()
 	PrimaryActorTick.bCanEverTick = true;
 
 	MatchDuration = 60.0f;
-	FreezeDuration = 10.0f;
+	FreezeDuration = 5.0f;
+	RespawnTimer = 10.0f;
 }
 
 void ASGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	ASGameState* GS = GetGameState<ASGameState>();
+	GS->UpdateFreezeTimerToPlayers(FreezeDuration);
+	GS->UpdateMatchTimerToPlayers(MatchDuration);
+	GS->UpdateRespawnTimerToPlayers(RespawnTimer);
+
 	StartFreezeTimer();
 }
 
@@ -89,24 +95,15 @@ void ASGameMode::FreezeTimerInterval()
 	GS->UpdateFreezeTimerToPlayers(FreezeDuration);
 }
 
-
 void ASGameMode::StartMatch()
 {
 	SetGameState(EGameState::InProgress);
 
-	UWorld* World = GetWorld();
-	if (World)
-	{
-		// iterate over all player controllers and enable input
-		for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
-		{
-			ASPlayerController* PC = Cast<ASPlayerController>(It->Get());
-			if (PC)
-			{
-				PC->ClientEnablePlayerInput();
-			}
-		}
-	}
+	StartRespawnTimer();
+	EnablePlayerInput();
+
+	//empty spawn location array so they can be reused next spawn wave
+	UsedSpawnLocations.Empty();
 
 	//start timer for round
 	GetWorld()->GetTimerManager().SetTimer(TimerHandler_GameTimer, this, &ASGameMode::MatchTimerInterval, 1.0f, true, 0);
@@ -134,18 +131,48 @@ void ASGameMode::MatchTimerInterval()
 }
 
 //handle the spawning of player pawn on the server
-void ASGameMode::SpawnPlayer(ASPlayerController* PlayerController)
+void ASGameMode::SpawnPlayer(ASPlayerController* PlayerController, bool IsRespawn)
 {
-	APawn* PlayerPawn = PlayerController->GetPawn();
+	if (!PlayerController)
+	{
+		UE_LOG(LogTemp, Log, TEXT("PlayerController not valid"));
+		return;
+	}
 
 	//check if player already possesses pawn and destroy it
+	APawn* PlayerPawn = PlayerController->GetPawn();
 	if (IsValid(PlayerPawn))
 	{
 		PlayerPawn->Destroy();
 	}
 
-	PlayerPawn = GetWorld()->SpawnActor<APawn>(PlayerPawnClass, FindRandomSpawnLocation());
-	PlayerController->Possess(PlayerPawn);
+	APawn* NewPlayerPawn = GetWorld()->SpawnActor<APawn>(PlayerPawnClass, FindRandomSpawnLocation());
+	if (IsValid(NewPlayerPawn))
+	{
+		PlayerController->Possess(NewPlayerPawn);
+
+		if (IsRespawn)
+		{
+			PlayerController->ClientEnablePlayerInput();
+		}
+
+	}
+}
+
+void ASGameMode::EnablePlayerInput()
+{
+	if (UWorld* World = GetWorld())
+	{
+		// iterate over all player controllers and enable input
+		for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
+		{
+			ASPlayerController* PC = Cast<ASPlayerController>(It->Get());
+			if (PC)
+			{
+				PC->ClientEnablePlayerInput();
+			}
+		}
+	}
 }
 
 //find all instances of the Player Start class and assign random spawn location
@@ -185,83 +212,64 @@ FTransform ASGameMode::FindRandomSpawnLocation()
 	return FTransform::Identity;
 }
 
+void ASGameMode::StartRespawnTimer()
+{
+	GetWorld()->GetTimerManager().SetTimer(TimerHandler_RespawnTimer, this, &ASGameMode::RespawnTimerInterval, 1.0f, true, 0);
+}
+
+void ASGameMode::RespawnTimerInterval()
+{
+	RespawnTimer -= 1.0f;
+
+	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Respawn time: %d"), RespawnTimer));
+	UE_LOG(LogTemp, Log, TEXT("Respawn time remaining: %f"), RespawnTimer);
+
+	if (RespawnTimer <= 0.0f)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Respawning players!"));
+		GetWorldTimerManager().ClearTimer(TimerHandler_RespawnTimer);
+
+		//uncomment RespawnAllDeadPlayers(); to add respawn on timer
+		RespawnAllDeadPlayers();
+
+		//empty spawn location array so they can be reused next spawn wave
+		UsedSpawnLocations.Empty();
+
+		//set and restart respawn timer
+		RespawnTimer = 10.0;
+		StartRespawnTimer();
+
+
+	}
+
+	ASGameState* GS = GetGameState<ASGameState>();
+	GS->UpdateRespawnTimerToPlayers(RespawnTimer);
+}
+
+void ASGameMode::RespawnAllDeadPlayers()
+{
+	//find if there are any alive players and respawn them - as GameMode runs on server, all player controllers are available
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		ASPlayerController* PC = Cast<ASPlayerController>(It->Get());
+
+		//if getpawn = null, then player = dead, so respawn (when player dies, they un-possess the pawn causing it to be null)
+		if (PC && PC->GetPawn() == nullptr)
+		{
+			PC->SetIsRespawn(true);
+			PC->SpawnPlayerCharacter();
+		}
+	}
+}
+
 void ASGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	//replicate variables
 	DOREPLIFETIME(ASGameMode, MatchDuration);
+	DOREPLIFETIME(ASGameMode, RespawnTimer);
 }
-
-
-
-
-
-
-
-//Warmup timers
-//void ASGameMode::StartWarmup()
-//{
-//	SetGameState(EGameState::WaitingToStart);
-//
-//	//start timer for warmup
-//	GetWorld()->GetTimerManager().SetTimer(TimerHandler_WarmupTimer, this, &ASGameMode::WarmupTimerInterval, 1.0f, true, 0);
-//}
-//
-//void ASGameMode::WarmupTimerInterval()
-//{
-//	WarmupDuration -= 1.0f;
-//
-//	UE_LOG(LogTemp, Log, TEXT("Remaining warmup time: %f"), WarmupDuration);
-//
-//	if (WarmupDuration <= 0.0f)
-//	{
-//		//gameover
-//		UE_LOG(LogTemp, Log, TEXT("Warmup has ended, game on!"));
-//
-//		GetWorldTimerManager().ClearTimer(TimerHandler_WarmupTimer);
-//
-//		StartMatch();
-//
-//	}
-//
-//	ASGameState* GS = GetGameState<ASGameState>();
-//	GS->UpdateWarmupTimerToPlayers(WarmupDuration);
-//}
-
-
-
-////add the player controller to the array when they join the game session
-//void ASGameMode::PostLogin(APlayerController* NewPlayerController)
-//{
-//	UE_LOG(LogTemp, Log, TEXT("PostLogin Controller connected: %s"), *FString(NewPlayerController->GetName()));
-//
-//	Super::PostLogin(NewPlayerController);
-//
-//	ASPlayerController* ConnectedController = Cast<ASPlayerController>(NewPlayerController);
-//	if (ConnectedController)
-//	{
-//		ConnectedPlayersArray.Add(ConnectedController);
-//
-//		UE_LOG(LogTemp, Log, TEXT("(Spawning) Player connected: %s"), *FString(ConnectedController->GetName()));
-//		UE_LOG(LogTemp, Log, TEXT("(Spawning) Connected players: %d"), ConnectedPlayersArray.Num());
-//	}
-//}
-//
-////remove the player controller from the array when they disconnect
-//void ASGameMode::Logout(AController* PlayerController)
-//{
-//	Super::Logout(PlayerController);
-//
-//	ASPlayerController* LeavingPlayerController = Cast<ASPlayerController>(PlayerController);
-//	if (LeavingPlayerController)
-//	{
-//		ConnectedPlayersArray.Remove(LeavingPlayerController);
-//	}
-//
-//	UE_LOG(LogTemp, Log, TEXT("Connected players: %d"), ConnectedPlayersArray.Num());
-//}
-
 
 
 //void ASGameMode::SetEnemyWaveState(EEnemyWaveState NewState)

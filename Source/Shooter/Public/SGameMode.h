@@ -28,7 +28,10 @@ public:
 
 	ASGameMode();
 
-	void SpawnPlayer(ASPlayerController* PlayerController);
+	void SpawnPlayer(ASPlayerController* PlayerController, bool IsRespawn);
+
+	UPROPERTY(BlueprintAssignable, Category = "GameMode")
+	FOnActorKilled OnActorKilled;
 
 protected:
 
@@ -41,6 +44,7 @@ protected:
 	FTimerHandle TimerHandler_GameTimer;
 	FTimerHandle TimerHandler_WarmupTimer;
 	FTimerHandle TimerHandler_FreezeTimer;
+	FTimerHandle TimerHandler_RespawnTimer;
 
 	TArray<ASPlayerController*> ConnectedPlayersArray;
 
@@ -52,17 +56,26 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly, EditDefaultsOnly)
 	float FreezeDuration;
 
+	UPROPERTY(Replicated, BlueprintReadOnly, EditDefaultsOnly)
+	float RespawnTimer;
+
 	//  ------------ Functions ------------  //
 
-	//void StartWarmup();
-	//void WarmupTimerInterval();
+	virtual void StartPlay() override;
+	void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
 	void StartMatch();
+	void EnablePlayerInput();
 	void StartFreezeTimer();
 	void FreezeTimerInterval();
 	void MatchTimerInterval();
-
 	void SetGameState(EGameState NewState);
+
+
+	void RespawnAllDeadPlayers();
+	void StartRespawnTimer();
+	void RespawnTimerInterval();
 
 	FTransform FindRandomSpawnLocation();
 
@@ -101,7 +114,7 @@ protected:
 	//void StartTimerForNextWave();
 
 	//respawn dead players
-	void RespawnDeadPlayers();
+	//void RespawnDeadPlayers();
 
 	////handle when to start next wave
 	//void QueryWaveState();
@@ -111,15 +124,4 @@ protected:
 
 	//void GameOver();
 
-public:
-
-	virtual void StartPlay() override;
-	void BeginPlay() override;
-	virtual void Tick(float DeltaSeconds) override;
-
-	//virtual void PostLogin(APlayerController* NewPlayerController) override;
-	//virtual void Logout(AController* PlayerController) override;
-
-	UPROPERTY(BlueprintAssignable, Category = "GameMode")
-	FOnActorKilled OnActorKilled;
 };

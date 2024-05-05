@@ -47,17 +47,20 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "GameState")
 	void WaveStateUpdated(EGameState NewState, EGameState PreviousState);
 
-	UFUNCTION(BlueprintCallable, Category = "GameState")
+	UFUNCTION(Category = "GameState")
+	void UpdateWarmupTimerToPlayers(float Time);
+
+	UFUNCTION(Category = "GameState")
+	void UpdateFreezeTimerToPlayers(float Time);
+
+	UFUNCTION(Category = "GameState")
 	void UpdateMatchTimerToPlayers(float Time);
 
-	UFUNCTION(BlueprintCallable, Category = "GameState")
-	void UpdateWarmupTimerToPlayers(float Time);
+	UFUNCTION(Category = "GameState")
+	void UpdateRespawnTimerToPlayers(float Time);
 
 	UFUNCTION(BlueprintCallable, Category = "GameState")
 	void UpdateMaxPlayerCount(int Players);
-
-	UFUNCTION(BlueprintCallable, Category = "GameState")
-	void UpdateFreezeTimerToPlayers(float Time);
 
 protected:
 
@@ -70,6 +73,9 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
 	float WarmupTimer;
 
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
+	float RespawnTimer;
+	
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
 	int MaxPlayerCount;
 

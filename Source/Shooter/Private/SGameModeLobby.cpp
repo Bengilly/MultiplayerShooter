@@ -13,7 +13,7 @@ ASGameModeLobby::ASGameModeLobby()
 {
 	GameStateClass = ASGameState::StaticClass();
 
-	WarmupDuration = 15.0f;
+	WarmupDuration = 5.0f;
 }
 
 void ASGameModeLobby::BeginPlay()

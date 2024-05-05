@@ -2,6 +2,9 @@
 
 
 #include "Components/SHealthComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
+#include "SPlayerController.h"
 #include "Net/UnrealNetwork.h"
 #include "SGameMode.h"
 
@@ -51,7 +54,7 @@ void USHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, 
 
 	OnHealthChanged.Broadcast(this, CurrentHealth, Damage, DamageType, InstigatedBy, DamageCauser);
 
-	if (CurrentHealth <= 0) 
+	if (CurrentHealth <= 0)
 	{
 		bIsDead = true;
 	}
@@ -62,7 +65,20 @@ void USHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, 
 		ASGameMode* GM = Cast<ASGameMode>(GetWorld()->GetAuthGameMode());
 		if (GM)
 		{
+			//blueprint function - update kills if killed actor was a player
 			GM->OnActorKilled.Broadcast(GetOwner(), DamageCauser, InstigatedBy);
+			
+			//if the owner of this health component is a player, destroy current pawn and call playercontroller class to respawn pawn
+			APawn* Pawn = Cast<APawn>(GetOwner());
+			if (Pawn->IsPlayerControlled())
+			{
+				ASPlayerController* PC = Cast<ASPlayerController>(Pawn->GetController());
+				Pawn->DetachFromControllerPendingDestroy();
+				Pawn->SetLifeSpan(5.0f);
+
+				//uncomment PC->ServerSpawnPlayerCharacter(); to add respawn on player death instead of timer in GM
+				//PC->ServerSpawnPlayerCharacter();
+			}
 		}
 	}
 }

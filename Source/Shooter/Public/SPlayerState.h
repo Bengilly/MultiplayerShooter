@@ -9,6 +9,7 @@
 /**
  * 
  */
+
 UCLASS()
 class SHOOTER_API ASPlayerState : public APlayerState
 {

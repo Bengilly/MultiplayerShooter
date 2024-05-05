@@ -45,9 +45,6 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	ASPowerupBase* AbilityInstance;
 
-	//UPROPERTY(BlueprintReadOnly)
-	//TSubclassOf<ASPowerupBase> AbilityType;
-
 	UPROPERTY()
 	EAbilityPickupType AbilityEnum;
 
@@ -295,17 +292,15 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	virtual void PossessedBy(AController* NewController) override;
 	virtual FVector GetPawnViewLocation() const override;
 
 	void AddPowerupChargeToPlayer(EAbilityPickupType PickupType, int NumberOfCharges);
 
-
-	virtual void PossessedBy(AController* NewController) override;
-
 	UFUNCTION(Client, Unreliable)
 	void ClientDisableInput(ASPlayerController* PlayerController);
+
+	UFUNCTION(BlueprintCallable)
+	bool IsPlayerDead();
 };

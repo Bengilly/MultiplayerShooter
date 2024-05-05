@@ -4,10 +4,9 @@
 #include "SGameState.h"
 #include "Net/UnrealNetwork.h"
 
-//called from game mode to update the match timer. Timer displayed to player HUD.
-void ASGameState::UpdateMatchTimerToPlayers(float Time)
+void ASGameState::UpdateRespawnTimerToPlayers(float Time)
 {
-	MatchTimer = Time;
+	RespawnTimer = Time;
 }
 
 void ASGameState::UpdateWarmupTimerToPlayers(float Time)
@@ -15,14 +14,20 @@ void ASGameState::UpdateWarmupTimerToPlayers(float Time)
 	WarmupTimer = Time;
 }
 
-void ASGameState::UpdateMaxPlayerCount(int NumOfPlayers)
-{
-	MaxPlayerCount = NumOfPlayers;
-}
-
 void ASGameState::UpdateFreezeTimerToPlayers(float Time)
 {
 	FreezeTimer = Time;
+}
+
+//called from game mode to update the match timer. Timer displayed to player HUD.
+void ASGameState::UpdateMatchTimerToPlayers(float Time)
+{
+	MatchTimer = Time;
+}
+
+void ASGameState::UpdateMaxPlayerCount(int NumOfPlayers)
+{
+	MaxPlayerCount = NumOfPlayers;
 }
 
 //  ------------ Multiplayer Functions ------------  //
@@ -53,6 +58,7 @@ void ASGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASGameState, FreezeTimer)
 	DOREPLIFETIME(ASGameState, MatchTimer)
 	DOREPLIFETIME(ASGameState, WarmupTimer);
+	DOREPLIFETIME(ASGameState, RespawnTimer);
 	DOREPLIFETIME(ASGameState, MaxPlayerCount);
 }
 

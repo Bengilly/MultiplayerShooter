@@ -18,6 +18,7 @@
 #include "SPowerupObject.h"
 #include "SPowerupBase.h"
 #include "SPlayerController.h"
+#include "SPlayerState.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -50,6 +51,8 @@ ASCharacter::ASCharacter()
 
 	AbilityIndex = 0;
 	//SelectedAbility = nullptr;
+
+	bPlayerDied = false;
 }
 
 // Called when the game starts or when spawned
@@ -309,14 +312,14 @@ void ASCharacter::OnHealthChanged(USHealthComponent* CharacterHealthComp, float 
 {
 	if (Health <= 0.0f && !bPlayerDied)
 	{
-		//player dies
+		//player animation
 		bPlayerDied = true;
 
 		GetMovementComponent()->StopMovementImmediately();
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		DetachFromControllerPendingDestroy();
 
-		SetLifeSpan(10.0f);
+		//DetachFromControllerPendingDestroy();
+		//SetLifeSpan(10.0f);
 	}
 }
 
@@ -823,4 +826,9 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASCharacter, SwitchWeaponAnim);
 
 	DOREPLIFETIME(ASCharacter, WeaponClassArray);
+}
+
+bool ASCharacter::IsPlayerDead()
+{
+	return bPlayerDied;
 }

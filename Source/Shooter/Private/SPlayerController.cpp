@@ -17,8 +17,7 @@ void ASPlayerController::BeginPlay()
 
 	if (IsLocalPlayerController())
 	{
-		UE_LOG(LogTemp, Log, TEXT("(Spawning) Print Controller: %s"), *FString(this->GetName()));
-		SpawnPlayerCharacter();
+		ServerSpawnPlayerCharacter();
 	}
 }
 
@@ -33,7 +32,7 @@ void ASPlayerController::SpawnPlayerCharacter()
 	ASGameMode* GM = Cast<ASGameMode>(GetWorld()->GetAuthGameMode());
 	if (GM)
 	{
-		GM->SpawnPlayer(this);
+		GM->SpawnPlayer(this, bIsRespawn);
 	}
 	else
 	{
@@ -41,11 +40,15 @@ void ASPlayerController::SpawnPlayerCharacter()
 	}
 }
 
+void ASPlayerController::SetIsRespawn(bool IsRespawn)
+{
+	bIsRespawn = IsRespawn;
+}
+
 void ASPlayerController::ServerSpawnPlayerCharacter_Implementation()
 {
 	SpawnPlayerCharacter();
 }
-
 
 //enable controller input for owning client
 void ASPlayerController::ClientEnablePlayerInput_Implementation()
@@ -56,7 +59,6 @@ void ASPlayerController::ClientEnablePlayerInput_Implementation()
 void ASPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
-
 }
 
 void ASPlayerController::Tick(float DeltaTime)

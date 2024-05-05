@@ -17,21 +17,29 @@ class SHOOTER_API ASPlayerController : public APlayerController
 public:
 	ASPlayerController();
 
+	void SpawnPlayerCharacter();
+
+	void SetIsRespawn(bool IsRespawn);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSpawnPlayerCharacter();
+
 	UFUNCTION(Client, Unreliable)
 	void ClientEnablePlayerInput();
 
+
 protected:
+
+	bool bIsRespawn;
+
 
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	virtual void Tick(float DeltaTime) override;
 
-	void SpawnPlayerCharacter();
-
 	//  ------------ Multiplayer Functions ------------  //
 
-	UFUNCTION(Server, Reliable)
-	void ServerSpawnPlayerCharacter();	
+
 
 
 };
