@@ -124,6 +124,7 @@ void ASGameMode::MatchTimerInterval()
 		GetWorldTimerManager().ClearTimer(TimerHandler_GameTimer);
 
 		SetGameState(EGameState::GameOver);
+		ServerTravelToMap("Level_Lobby_PostGame");
 	}
 
 	ASGameState* GS = GetGameState<ASGameState>();
@@ -238,8 +239,6 @@ void ASGameMode::RespawnTimerInterval()
 		//set and restart respawn timer
 		RespawnTimer = 10.0;
 		StartRespawnTimer();
-
-
 	}
 
 	ASGameState* GS = GetGameState<ASGameState>();
@@ -259,6 +258,18 @@ void ASGameMode::RespawnAllDeadPlayers()
 			PC->SetIsRespawn(true);
 			PC->SpawnPlayerCharacter();
 		}
+	}
+}
+
+//load new level on the server
+void ASGameMode::ServerTravelToMap(const FString& MapName)
+{
+	// perform server travel to new level
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		FString URL = FString::Printf(TEXT("/Game/Maps/%s?listen"), *MapName);
+		World->ServerTravel(URL, true, false);
 	}
 }
 

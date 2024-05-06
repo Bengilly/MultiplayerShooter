@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "SPlayerState.h"
 #include "Engine/World.h"
 
 USGameInstance::USGameInstance()

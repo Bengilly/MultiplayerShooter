@@ -79,6 +79,8 @@ protected:
 
 	FTransform FindRandomSpawnLocation();
 
+	void ServerTravelToMap(const FString& MapName);
+
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 

@@ -75,7 +75,7 @@ void ASGameModeLobby::ServerTravelToMap(const FString& MapName)
 	// future work - notify clients before travel
 	// future work - handle game state rep here
 
-	// perform server travel to load forest level
+	// perform server travel to load new level
 	UWorld* World = GetWorld();
 	if (World)
 	{
