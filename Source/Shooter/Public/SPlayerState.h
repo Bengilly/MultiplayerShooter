@@ -19,4 +19,17 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerState")
 	void UpdateScore(float ScoreToAdd);
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerState")
+	void UpdateDeaths();
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerState")
+	float GetDeaths() const;
+
+protected:
+
+	UPROPERTY(Replicated)
+	float Deaths;
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 };
