@@ -816,6 +816,8 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASCharacter, bIsReloading);
 	DOREPLIFETIME(ASCharacter, bIsShooting);
 	DOREPLIFETIME(ASCharacter, bIsSwitchingWeapon);
+	DOREPLIFETIME(ASCharacter, bIsSpeedBoosted);
+	DOREPLIFETIME(ASCharacter, bIsInvisible);
 
 	DOREPLIFETIME(ASCharacter, PlayerRifleAmmo);
 	DOREPLIFETIME(ASCharacter, PlayerPistolAmmo);
