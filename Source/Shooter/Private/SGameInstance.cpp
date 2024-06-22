@@ -154,6 +154,9 @@ void USGameInstance::ChangePlayerName(FString PlayerName)
 {
 	PlayerProfileStruct.PlayerName = PlayerName;
 
+	//ASPlayerState* PS = Cast<ASPlayerState>(UGameplayStatics::GetPlayerState(this,0));
+	//PS->SetCustomPlayerName(PlayerProfileStruct.PlayerName);
+
 	UE_LOG(LogTemp, Log, TEXT("(Instance) New player name: %s"), *PlayerProfileStruct.PlayerName);
 	SavePlayerProfile();
 }

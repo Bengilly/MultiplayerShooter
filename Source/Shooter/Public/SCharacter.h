@@ -61,6 +61,12 @@ public:
 	// Sets default values for this character's properties
 	ASCharacter();
 
+	UPROPERTY(Replicated, BlueprintReadWrite)
+	bool bIsSpeedBoosted;
+
+	UPROPERTY(Replicated, BlueprintReadWrite)
+	bool bIsInvisible;
+
 protected:
 
 	//  ------------ Variables ------------  //
@@ -108,6 +114,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player")
 	float MaxStamina;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Player")
+	float CurrentStamina;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	float StaminaUsageRateSprinting;
 
@@ -116,9 +125,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	float StaminaRegenRate;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Player")
-	float CurrentStamina;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Player")
 	bool bIsShooting;

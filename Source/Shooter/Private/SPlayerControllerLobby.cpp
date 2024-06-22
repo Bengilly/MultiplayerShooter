@@ -7,7 +7,6 @@
 #include "SGameModeLobby.h"
 #include "Net/UnrealNetwork.h"
 
-
 ASPlayerControllerLobby::ASPlayerControllerLobby()
 {
 	

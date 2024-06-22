@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "SGameMode.h"
 #include "Net/UnrealNetwork.h"
+#include "SPlayerState.h"
 
 ASPlayerController::ASPlayerController()
 {

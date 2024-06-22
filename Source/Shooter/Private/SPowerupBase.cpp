@@ -3,6 +3,7 @@
 
 #include "SPowerupBase.h"
 #include "Net/UnrealNetwork.h"
+#include "SCharacter.h"
 
 // Sets default values
 ASPowerupBase::ASPowerupBase()
@@ -19,10 +20,12 @@ ASPowerupBase::ASPowerupBase()
 //only activate powerup once picked
 void ASPowerupBase::ActivateAbility(AActor* PlayerToApplyAbilityTo)
 {
-	UE_LOG(LogTemp, Log, TEXT("Ability Activated to: %s"), *FString(PlayerToApplyAbilityTo->GetName()));
-	UE_LOG(LogTemp, Log, TEXT("Powerup Activated: %s"), *FString(this->GetName()));
+	//UE_LOG(LogTemp, Log, TEXT("Ability Activated to: %s"), *FString(PlayerToApplyAbilityTo->GetName()));
+	//UE_LOG(LogTemp, Log, TEXT("Powerup Activated: %s"), *FString(this->GetName()));
 
-	OnAbilityActivated(PlayerToApplyAbilityTo);
+	AffectedActor = PlayerToApplyAbilityTo;
+
+	OnAbilityActivated(AffectedActor);
 
 	bIsAbilityActive = true;
 	//OnRep_AbilityActive();
@@ -40,14 +43,17 @@ void ASPowerupBase::ActivateAbility(AActor* PlayerToApplyAbilityTo)
 void ASPowerupBase::OnAbilityTick()
 {
 	TickCount++;
+	GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("TickCount: %d"), TickCount));
 
 	//effect finishes	
 	if (TickCount >= TotalNumberOfTicks)
 	{
 		OnAbilityExpired();
-
+		
 		bIsAbilityActive = false;
 		//OnRep_AbilityActive();
+
+		TickCount = 0;
 
 		//delete timer once the effect has finished
 		GetWorldTimerManager().ClearTimer(TimerHandle_PowerupEffectTick);

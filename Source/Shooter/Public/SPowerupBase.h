@@ -19,6 +19,8 @@ public:
 
 protected:
 
+	AActor* AffectedActor;
+
 	UPROPERTY(ReplicatedUsing=OnRep_AbilityActive)
 	bool bIsAbilityActive;
 
