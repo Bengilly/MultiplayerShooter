@@ -25,7 +25,7 @@ ASGameMode::ASGameMode()
 	PrimaryActorTick.TickInterval = 1.0f;
 	PrimaryActorTick.bCanEverTick = true;
 
-	MatchDuration = 60.0f;
+	MatchDuration = 20.0f;
 	FreezeDuration = 5.0f;
 	RespawnTimer = 10.0f;
 }
@@ -109,7 +109,7 @@ void ASGameMode::StartMatch()
 	GetWorld()->GetTimerManager().SetTimer(TimerHandler_GameTimer, this, &ASGameMode::MatchTimerInterval, 1.0f, true, 0);
 }
  
-//decrease match 
+//decrease match timer
 void ASGameMode::MatchTimerInterval()
 {
 	MatchDuration -= 1.0f;
@@ -122,6 +122,8 @@ void ASGameMode::MatchTimerInterval()
 		UE_LOG(LogTemp, Log, TEXT("Match has ended!"));
 
 		GetWorldTimerManager().ClearTimer(TimerHandler_GameTimer);
+
+		//disable player input here
 
 		SetGameState(EGameState::GameOver);
 		ServerTravelToMap("Level_Lobby_PostGame");

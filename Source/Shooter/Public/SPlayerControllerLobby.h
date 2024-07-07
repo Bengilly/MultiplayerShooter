@@ -43,6 +43,13 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowLobbyMenu();
 
+	//Show postgame lobby menu on client PC
+	UFUNCTION(Client, Unreliable)
+	void ClientCreatePostgameLobbyMenu();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowPostgameLobbyMenu();
+
 	//Show loading screen on client PC 
 	UFUNCTION(Client, Unreliable)
 	void ClientShowLoadingScreen();

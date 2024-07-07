@@ -14,6 +14,14 @@ class SHOOTER_API ASGameModePostGameLobby : public AGameModeBase
 {
 	GENERATED_BODY()
 	
-	
+	ASGameModePostGameLobby();
+
+
+protected:
+
+	//void BeginPlay() override;
+
+	virtual void PostLogin(APlayerController* NewPlayerController) override;
+	virtual void Logout(AController* PlayerController) override;
 
 };

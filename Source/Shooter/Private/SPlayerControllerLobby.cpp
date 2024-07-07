@@ -46,6 +46,12 @@ void ASPlayerControllerLobby::ClientCreateLobbyMenu_Implementation()
 	ShowLobbyMenu();
 }
 
+//calls blueprint function on client to load lobby menu widget
+void ASPlayerControllerLobby::ClientCreatePostgameLobbyMenu_Implementation()
+{
+	ShowPostgameLobbyMenu();
+}
+
 //calls blueprint function on client to load loading screen widget
 void ASPlayerControllerLobby::ClientShowLoadingScreen_Implementation()
 {
