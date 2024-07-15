@@ -66,6 +66,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Session Results")
 	TArray<FSSessionSearchResults> SessionSearchResultsArray;
 
+	void DestroySession();
+
 
 protected:
 
@@ -90,6 +92,7 @@ protected:
 	virtual void OnCreateSessionComplete(FName Name, bool bSucceeded);
 	virtual void OnFindSessionComplete(bool bSucceeded);
 	virtual void OnJoinSessionComplete(FName Name, EOnJoinSessionCompleteResult::Type Result);
+	virtual void OnDestroySessionComplete(FName SessionName, bool bWasSuccessful);
 
 	UFUNCTION(BlueprintCallable)
 	void CreateMultiplayerSession(FName SessionName);

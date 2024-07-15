@@ -30,6 +30,7 @@ void USGameInstance::Init()
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &USGameInstance::OnCreateSessionComplete);
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &USGameInstance::OnFindSessionComplete);
 			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &USGameInstance::OnJoinSessionComplete);
+			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &USGameInstance::OnDestroySessionComplete);
 		}
 	}
 }
@@ -150,6 +151,25 @@ void USGameInstance::OnJoinSessionComplete(FName Name, EOnJoinSessionCompleteRes
 	}
 }
 
+//destroy player's multiplayer session
+void USGameInstance::DestroySession()
+{
+	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
+	if (OnlineSubsystem)
+	{
+		if (SessionInterface.IsValid())
+		{
+			SessionInterface->DestroySession(FName(*SessionSearchResults.ResultSessionName));
+			UGameplayStatics::OpenLevel(GetWorld(), FName("Level_MainMenu"));
+		}
+	}
+}
+
+void USGameInstance::OnDestroySessionComplete(FName SessionName, bool bWasSuccessful)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Session left")));
+}
+
 void USGameInstance::ChangePlayerName(FString PlayerName)
 {
 	PlayerProfileStruct.PlayerName = PlayerName;
@@ -169,12 +189,12 @@ void USGameInstance::SavePlayerProfile()
 	if (!IsValid(SGPlayerProfile))
 	{
 		UE_LOG(LogTemp, Log, TEXT("(Instance) SGPlayerProfile is not valid"));
+		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Instance) SGPlayerProfile is not valid")));
 
-		USaveGame* SG = UGameplayStatics::CreateSaveGameObject(USSaveGamePlayerProfile::StaticClass());
-		SGPlayerProfile = Cast<USSaveGamePlayerProfile>(SG);
+		SGPlayerProfile = Cast <USSaveGamePlayerProfile>(UGameplayStatics::CreateSaveGameObject(USSaveGamePlayerProfile::StaticClass()));
 	}
 
-	if (SGPlayerProfile)
+	if (IsValid(SGPlayerProfile))
 	{
 		UE_LOG(LogTemp, Log, TEXT("(Instance) Save new SGPlayerProfile to slot"));
 
@@ -190,10 +210,7 @@ void USGameInstance::SavePlayerProfile()
 
 USSaveGamePlayerProfile* USGameInstance::LoadPlayerProfile()
 {
-	//SGPlayerProfile = Cast<USSaveGamePlayerProfile>(UGameplayStatics::LoadGameFromSlot(PlayerProfileSlot, 0));
-
-	USaveGame* SG = UGameplayStatics::LoadGameFromSlot(PlayerProfileSlot, 0);
-	SGPlayerProfile = Cast<USSaveGamePlayerProfile>(SG);
+	SGPlayerProfile = Cast<USSaveGamePlayerProfile>(UGameplayStatics::LoadGameFromSlot(PlayerProfileSlot, 0));
 
 	if (SGPlayerProfile)
 	{
@@ -213,10 +230,12 @@ void USGameInstance::CheckForSavedProfile()
 {
 	if (UGameplayStatics::DoesSaveGameExist(PlayerProfileSlot, 0))
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Instance) Load Player Profile")));
 		SGPlayerProfile = LoadPlayerProfile();
 	}
 	else
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Instance) Save Player Profile")));
 		SavePlayerProfile();
 	}
 }

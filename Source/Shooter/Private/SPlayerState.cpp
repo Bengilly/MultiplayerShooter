@@ -29,7 +29,7 @@ float ASPlayerState::GetTotalPlayerDeaths() const
 void ASPlayerState::SetCustomPlayerName(FString Name)
 {
 	PlayerName = Name;
-	GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("SetPlayerName: %s"), *PlayerName));
+	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("SetPlayerName: %s"), *PlayerName));
 }
 
 FString ASPlayerState::GetCustomPlayerName() const

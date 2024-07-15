@@ -111,7 +111,10 @@ void ASGameModeLobby::PostLogin(APlayerController* NewPlayerController)
 	//start game once all players have connected to the session
 	if (MaxConnectedPlayers == ConnectedPlayersArray.Num())
 	{
-		StartWarmup();
+		//load start match button in the lobby screen
+		bLoadStartMatchButton = true;
+
+		//StartWarmup();
 	}
 }
 

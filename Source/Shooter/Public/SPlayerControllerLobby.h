@@ -57,6 +57,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowLoadingScreen();
 
+	UFUNCTION(BlueprintCallable)
+	void EndPlayerSessions();
+
 protected:
 
 	//  ------------ Variables ------------  //
@@ -72,5 +75,10 @@ protected:
 
 	UFUNCTION(Server,Reliable, BlueprintCallable)
 	void ServerUpdateLobby(FSPlayerProfileStruct PlayerProfile);
+
+	UFUNCTION(Client, Unreliable)
+	void ClientEndPlayerSession();
+
+
 
 };

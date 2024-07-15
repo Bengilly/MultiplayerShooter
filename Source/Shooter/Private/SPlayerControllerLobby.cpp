@@ -4,6 +4,7 @@
 #include "SPlayerControllerLobby.h"
 #include "Kismet/GameplayStatics.h"
 #include "SSaveGamePlayerProfile.h"
+#include "SGameInstance.h"
 #include "SGameModeLobby.h"
 #include "Net/UnrealNetwork.h"
 
@@ -68,4 +69,16 @@ void ASPlayerControllerLobby::ClientInitialPlayerSetup_Implementation()
 void ASPlayerControllerLobby::ClientUpdatePlayerNames_Implementation(const TArray<FSPlayerProfileStruct>& AllPlayerProfileStructs)
 {
 	UpdatePlayerNames(AllPlayerProfileStructs);
+}
+
+void ASPlayerControllerLobby::EndPlayerSessions()
+{
+	ClientEndPlayerSession();
+}
+
+//Destroy client session when main menu button has either been pressed by the host (server) or player
+void ASPlayerControllerLobby::ClientEndPlayerSession_Implementation()
+{
+	USGameInstance* GI = Cast<USGameInstance>(GetGameInstance());
+	GI->DestroySession();
 }

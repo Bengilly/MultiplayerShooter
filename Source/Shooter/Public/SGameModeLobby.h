@@ -29,6 +29,8 @@ public:
 	float WarmupDuration;
 	int MaxConnectedPlayers;
 
+	UPROPERTY(BlueprintReadOnly)
+	bool bLoadStartMatchButton;
 
 	UPROPERTY(BlueprintReadOnly)
 	TArray<ASPlayerControllerLobby*> ConnectedPlayersArray;
@@ -63,5 +65,6 @@ protected:
 	virtual void Logout(AController* PlayerController) override;
 
 	void SetGameState(EGameState NewState);
+
 
 };
