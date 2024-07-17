@@ -167,7 +167,7 @@ void USGameInstance::DestroySession()
 
 void USGameInstance::OnDestroySessionComplete(FName SessionName, bool bWasSuccessful)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Session left")));
+	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Session left")));
 }
 
 void USGameInstance::ChangePlayerName(FString PlayerName)
@@ -189,7 +189,7 @@ void USGameInstance::SavePlayerProfile()
 	if (!IsValid(SGPlayerProfile))
 	{
 		UE_LOG(LogTemp, Log, TEXT("(Instance) SGPlayerProfile is not valid"));
-		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Instance) SGPlayerProfile is not valid")));
+		//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Instance) SGPlayerProfile is not valid")));
 
 		SGPlayerProfile = Cast <USSaveGamePlayerProfile>(UGameplayStatics::CreateSaveGameObject(USSaveGamePlayerProfile::StaticClass()));
 	}

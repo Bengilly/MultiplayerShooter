@@ -107,15 +107,7 @@ void ASGameModeLobby::PostLogin(APlayerController* NewPlayerController)
 
 	ASGameState* GS = GetGameState<ASGameState>();
 	GS->UpdateMaxPlayerCount(MaxConnectedPlayers);
-	
-	//start game once all players have connected to the session
-	if (MaxConnectedPlayers == ConnectedPlayersArray.Num())
-	{
-		//load start match button in the lobby screen
-		bLoadStartMatchButton = true;
 
-		//StartWarmup();
-	}
 }
 
 //remove the player controller from the array when they disconnect

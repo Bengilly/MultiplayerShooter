@@ -30,9 +30,6 @@ public:
 	int MaxConnectedPlayers;
 
 	UPROPERTY(BlueprintReadOnly)
-	bool bLoadStartMatchButton;
-
-	UPROPERTY(BlueprintReadOnly)
 	TArray<ASPlayerControllerLobby*> ConnectedPlayersArray;
 
 
@@ -55,6 +52,7 @@ protected:
 
 	void BeginPlay();
 
+	UFUNCTION(BlueprintCallable)
 	void StartWarmup();
 
 	void WarmupTimerInterval();
