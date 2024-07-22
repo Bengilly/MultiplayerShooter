@@ -66,7 +66,7 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 
 	void StartMatch();
-	void EnablePlayerInput();
+	void SetPlayerInput(bool bEnableInput);
 	void StartFreezeTimer();
 	void FreezeTimerInterval();
 	void MatchTimerInterval();

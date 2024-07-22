@@ -27,6 +27,8 @@ public:
 	UFUNCTION(Client, Unreliable)
 	void ClientEnablePlayerInput();
 
+	UFUNCTION(Client, Unreliable)
+	void ClientDisablePlayerInput();
 
 protected:
 
@@ -36,6 +38,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	virtual void Tick(float DeltaTime) override;
+
 
 	//  ------------ Multiplayer Functions ------------  //
 

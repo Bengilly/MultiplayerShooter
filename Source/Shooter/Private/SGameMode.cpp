@@ -98,9 +98,8 @@ void ASGameMode::FreezeTimerInterval()
 void ASGameMode::StartMatch()
 {
 	SetGameState(EGameState::InProgress);
-
 	StartRespawnTimer();
-	EnablePlayerInput();
+	SetPlayerInput(true);
 
 	//empty spawn location array so they can be reused next spawn wave
 	UsedSpawnLocations.Empty();
@@ -123,7 +122,8 @@ void ASGameMode::MatchTimerInterval()
 
 		GetWorldTimerManager().ClearTimer(TimerHandler_GameTimer);
 
-		//disable player input here
+		//disable player input
+		SetPlayerInput(false);
 
 		SetGameState(EGameState::GameOver);
 		ServerTravelToMap("Level_Lobby_PostGame");
@@ -162,7 +162,7 @@ void ASGameMode::SpawnPlayer(ASPlayerController* PlayerController, bool IsRespaw
 	}
 }
 
-void ASGameMode::EnablePlayerInput()
+void ASGameMode::SetPlayerInput(bool bEnableInput)
 {
 	if (UWorld* World = GetWorld())
 	{
@@ -170,9 +170,13 @@ void ASGameMode::EnablePlayerInput()
 		for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
 		{
 			ASPlayerController* PC = Cast<ASPlayerController>(It->Get());
-			if (PC)
+			if (PC && bEnableInput)
 			{
 				PC->ClientEnablePlayerInput();
+			}
+			else if (PC && !bEnableInput)
+			{
+				PC->ClientDisablePlayerInput();
 			}
 		}
 	}

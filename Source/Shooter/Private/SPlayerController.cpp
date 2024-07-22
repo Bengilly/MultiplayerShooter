@@ -57,6 +57,12 @@ void ASPlayerController::ClientEnablePlayerInput_Implementation()
 	this->GetPawn()->EnableInput(this);
 }
 
+//enable controller input for owning client
+void ASPlayerController::ClientDisablePlayerInput_Implementation()
+{
+	this->GetPawn()->DisableInput(this);
+}
+
 void ASPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
