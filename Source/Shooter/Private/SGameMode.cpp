@@ -25,7 +25,7 @@ ASGameMode::ASGameMode()
 	PrimaryActorTick.TickInterval = 1.0f;
 	PrimaryActorTick.bCanEverTick = true;
 
-	MatchDuration = 20.0f;
+	MatchDuration = 60.0f;
 	FreezeDuration = 5.0f;
 	RespawnTimer = 10.0f;
 }
