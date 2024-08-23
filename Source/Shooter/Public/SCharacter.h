@@ -160,7 +160,7 @@ protected:
 	USHealthComponent* HealthComponent;
 
 	//  ------------ Abilities ------------  // 
-
+	
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	FAbilityInfo AbilityInfoStruct;
 

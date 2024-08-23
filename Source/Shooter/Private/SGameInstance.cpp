@@ -230,12 +230,12 @@ void USGameInstance::CheckForSavedProfile()
 {
 	if (UGameplayStatics::DoesSaveGameExist(PlayerProfileSlot, 0))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Instance) Load Player Profile")));
+		//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Instance) Load Player Profile")));
 		SGPlayerProfile = LoadPlayerProfile();
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Instance) Save Player Profile")));
+		//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Instance) Save Player Profile")));
 		SavePlayerProfile();
 	}
 }
