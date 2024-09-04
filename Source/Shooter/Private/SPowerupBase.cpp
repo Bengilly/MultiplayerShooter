@@ -13,6 +13,7 @@ ASPowerupBase::ASPowerupBase()
 	TickCount = 0;
 
 	bReplicates = true;
+	bIsAbilityActive = false;
 
 	//bIsAbilityActive = false;
 }
@@ -22,6 +23,11 @@ void ASPowerupBase::ActivateAbility(AActor* PlayerToApplyAbilityTo)
 {
 	//UE_LOG(LogTemp, Log, TEXT("Ability Activated to: %s"), *FString(PlayerToApplyAbilityTo->GetName()));
 	//UE_LOG(LogTemp, Log, TEXT("Powerup Activated: %s"), *FString(this->GetName()));
+
+	if (bIsAbilityActive)
+	{
+		return;
+	}
 
 	AffectedActor = PlayerToApplyAbilityTo;
 

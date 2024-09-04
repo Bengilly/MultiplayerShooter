@@ -161,6 +161,9 @@ protected:
 
 	//  ------------ Abilities ------------  // 
 	
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsAbilityActiveOnPlayer;
+	
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	FAbilityInfo AbilityInfoStruct;
 

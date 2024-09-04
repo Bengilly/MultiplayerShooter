@@ -385,7 +385,8 @@ void ASCharacter::UseAbility()
 		{
 			for (int i = 0; i < AbilityStructArray.Num(); i++)
 			{
-				if (SelectedAbility == AbilityStructArray[i].AbilityInstance && AbilityStructArray[i].NumberOfCharges > 0)
+				//use the ability which the player has selected only if they have more than 0 charges and that the ability is not already active
+				if (SelectedAbility == AbilityStructArray[i].AbilityInstance && AbilityStructArray[i].NumberOfCharges > 0 && !bIsAbilityActiveOnPlayer)
 				{
 					AbilityStructArray[i].AbilityInstance->ActivateAbility(this);
 					AbilityStructArray[i].NumberOfCharges -= 1;
