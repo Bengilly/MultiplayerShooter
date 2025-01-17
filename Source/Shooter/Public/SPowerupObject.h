@@ -37,7 +37,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	URotatingMovementComponent* RotatingComponent;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	UStaticMeshComponent* MeshComponent;
 
 
