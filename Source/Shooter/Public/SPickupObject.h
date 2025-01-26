@@ -29,8 +29,8 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category = "PickupObject")
 	float SpawnCooldown;
 
-	UPROPERTY(EditInstanceOnly, Category = "PickupObject")
-	TSubclassOf<ASPowerupObject> AbilityPickupClass;
+	UPROPERTY(EditDefaultsOnly, Category = "PickupObject")
+	TArray<TSubclassOf<ASPowerupObject>> AbilityPickupType;
 
 	FTimerHandle TimerHandle_RespawnTimer;
 
