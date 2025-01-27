@@ -65,6 +65,7 @@ void ASPickupObject::SpawnPickup()
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
+	//define spawn weighting and generate a random value between 0.0 - 0.1 and spawn powerup type
 	float RandomSpawnValue = FMath::FRand();
 	if (RandomSpawnValue < 0.5)
 	{
@@ -74,8 +75,4 @@ void ASPickupObject::SpawnPickup()
 	{
 		AbilityPickupInstance = GetWorld()->SpawnActor<ASPowerupObject>(AbilityPickupType[1], GetTransform(), SpawnParams);
 	}
-
-
-
-
 }

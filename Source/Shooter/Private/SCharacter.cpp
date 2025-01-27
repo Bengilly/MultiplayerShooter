@@ -538,6 +538,12 @@ void ASCharacter::MoveRight(float value)
 
 void ASCharacter::BeginCrouch()
 {
+	if (bIsAbilityActiveOnPlayer)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Ability blocked...")));
+		return;
+	}
+
 	if (bIsZooming)
 	{
 		GetCharacterMovement()->MaxWalkSpeedCrouched = 100.f;
