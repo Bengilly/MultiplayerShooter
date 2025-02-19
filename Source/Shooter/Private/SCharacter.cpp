@@ -19,6 +19,7 @@
 #include "SPowerupBase.h"
 #include "SPlayerController.h"
 #include "SPlayerState.h"
+#include "SFlag.h"
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -42,6 +43,7 @@ ASCharacter::ASCharacter()
 
 	RifleAttachSocketName = "Socket_Rifle";
 	PistolAttachSocketName = "Socket_Pistol";
+	FlagAttachSocketName = "Socket_Flag";
 
 	MaxStamina = 100.0f;
 	CurrentStamina = 100.0f;
@@ -82,6 +84,21 @@ void ASCharacter::BeginPlay()
 			EquipAbility(AbilityStructArray[0].AbilityInstance);
 		}
 	}
+}
+
+// Called every frame
+void ASCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	//true = zoomed fov, false = defaultfov
+	float TargetFOV = bIsZooming ? ZoomedFOV : DefaultFOV;
+
+	float NewFOV = FMath::FInterpTo(CameraComponent->FieldOfView, TargetFOV, DeltaTime, ZoomInterpSpeed);
+
+	CameraComponent->SetFieldOfView(NewFOV);
+
+	UpdateStamina(DeltaTime);
 }
 
 //spawn weapons on player
@@ -315,6 +332,12 @@ void ASCharacter::OnHealthChanged(USHealthComponent* CharacterHealthComp, float 
 		//player animation
 		bPlayerDied = true;
 
+		//if player has the flag, drop it
+		if (FlagOnPlayer)
+		{
+			FlagOnPlayer->OnDropped();
+		}
+
 		GetMovementComponent()->StopMovementImmediately();
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -506,20 +529,27 @@ void ASCharacter::ServerAddPowerupChargeToPlayer_Implementation(EAbilityPickupTy
 	AddPowerupChargeToPlayer(PickupType, Charges);
 }
 
-// Called every frame
-void ASCharacter::Tick(float DeltaTime)
+//  ------------ Flag Functions ------------  //
+
+void ASCharacter::PickupFlag(ASFlag* Flag)
 {
-	Super::Tick(DeltaTime);
-
-	//true = zoomed fov, false = defaultfov
-	float TargetFOV = bIsZooming ? ZoomedFOV : DefaultFOV;
-
-	float NewFOV = FMath::FInterpTo(CameraComponent->FieldOfView, TargetFOV, DeltaTime, ZoomInterpSpeed);
-
-	CameraComponent->SetFieldOfView(NewFOV);
-
-	UpdateStamina(DeltaTime);
+	if (GetLocalRole() < ROLE_Authority && Flag && !Flag->GetFlagHolder())
+	{
+		Flag->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FlagAttachSocketName);
+		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Attach flag to player")));
+	}
 }
+
+void ASCharacter::DropFlag()
+{
+	if (GetLocalRole() < ROLE_Authority && FlagOnPlayer)
+	{
+		FlagOnPlayer->OnDropped();
+		FlagOnPlayer = nullptr;
+	}
+}
+
+//  ------------ Movement Functions ------------  //
 
 void ASCharacter::MoveForward(float value)
 {
@@ -759,6 +789,11 @@ FVector ASCharacter::GetPawnViewLocation() const
 	return Super::GetPawnViewLocation();
 }
 
+bool ASCharacter::IsPlayerDead()
+{
+	return bPlayerDied;
+}
+
 
 //  ------------ Multiplayer Functions ------------  //
 
@@ -835,9 +870,4 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASCharacter, SwitchWeaponAnim);
 
 	DOREPLIFETIME(ASCharacter, WeaponClassArray);
-}
-
-bool ASCharacter::IsPlayerDead()
-{
-	return bPlayerDied;
 }

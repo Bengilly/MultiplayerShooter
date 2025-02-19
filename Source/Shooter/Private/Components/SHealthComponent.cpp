@@ -36,7 +36,6 @@ void USHealthComponent::BeginPlay()
 	CurrentHealth = BaseHealth;
 }
 
-
 float USHealthComponent::GetHealth() const
 {
 	return CurrentHealth;

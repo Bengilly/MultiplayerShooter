@@ -23,6 +23,12 @@ public:
 	void UpdateScore(float ScoreToAdd);
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerState")
+	void SetTotalPlayerKills();
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerState")
+	float GetTotalPlayerKills() const;
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerState")
 	void SetTotalPlayerDeaths();
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerState")
@@ -38,6 +44,9 @@ protected:
 
 	UPROPERTY(Replicated)
 	float Deaths;
+
+	UPROPERTY(Replicated)
+	float Kills;
 
 	UPROPERTY(Replicated)
 	FString PlayerName;

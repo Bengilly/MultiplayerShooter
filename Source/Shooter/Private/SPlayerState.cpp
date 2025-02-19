@@ -8,12 +8,23 @@
 ASPlayerState::ASPlayerState()
 {
 	Deaths = 0;
+	Score = 0;
 }
 
 void ASPlayerState::UpdateScore(float ScoreToAdd)
 {
 	Score = GetScore();
 	SetScore(Score += ScoreToAdd);
+}
+
+void ASPlayerState::SetTotalPlayerKills()
+{
+	Kills += 1;
+}
+
+float ASPlayerState::GetTotalPlayerKills() const
+{
+	return Kills;
 }
 
 void ASPlayerState::SetTotalPlayerDeaths()
@@ -45,4 +56,6 @@ void ASPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	//replicate variables
 	DOREPLIFETIME(ASPlayerState, PlayerName);
 	DOREPLIFETIME(ASPlayerState, Deaths);
+	DOREPLIFETIME(ASPlayerState, Kills);
+	DOREPLIFETIME(ASPlayerState, Score);
 }

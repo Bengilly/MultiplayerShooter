@@ -18,7 +18,7 @@ class USHealthComponent;
 class ASWeapon;
 class ASPowerupObject;
 class ASPowerupBase;
-
+class ASFlag;
 
 //weapon struct
 USTRUCT(BlueprintType)
@@ -67,6 +67,8 @@ public:
 	UPROPERTY(Replicated, BlueprintReadWrite)
 	bool bIsInvisible;
 
+	void PickupFlag(ASFlag* Flag);
+
 protected:
 
 	//  ------------ Variables ------------  //
@@ -74,6 +76,8 @@ protected:
 	float DefaultFOV;
 	FTimerHandle Timerhandle_Reload;
 	FTimerHandle TimerHandler_SwitchWeapon;
+
+	ASFlag* FlagOnPlayer;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	FWeaponInfo WeaponInfoStruct;
@@ -137,6 +141,9 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
 	FName PistolAttachSocketName;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "Player")
+	FName FlagAttachSocketName;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	TSubclassOf<ASWeapon> RifleWeaponClass;
@@ -230,6 +237,8 @@ protected:
 	void AddWeapon(ASWeapon* Weapon);
 	void SetCurrentWeapon(ASWeapon* NewWeapon, ASWeapon* PreviousWeapon);
 	bool CanSwitchWeapon(ASWeapon* Weapon);
+
+	void DropFlag();
 
 	void MoveForward(float value);
 	void MoveRight(float value);

@@ -72,7 +72,6 @@ protected:
 	void MatchTimerInterval();
 	void SetGameState(EGameState NewState);
 
-
 	void RespawnAllDeadPlayers();
 	void StartRespawnTimer();
 	void RespawnTimerInterval();
