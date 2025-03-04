@@ -64,7 +64,15 @@ void ASCharacter::BeginPlay()
 
 	DefaultFOV = CameraComponent->FieldOfView;
 
+
 	HealthComponent->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChanged);
+
+	ASFlag* Flag = Cast<ASFlag>(UGameplayStatics::GetActorOfClass(GetWorld(), ASFlag::StaticClass()));
+	if (Flag)
+	{
+		Flag->OnFlagPickedUp.AddDynamic(this, &ASCharacter::PickupFlag);
+		Flag->OnFlagDropped.AddDynamic(this, &ASCharacter::DropFlag);
+	}
 
 	//initialise player weapons on the server
 	if (GetLocalRole() == ROLE_Authority)
@@ -332,12 +340,6 @@ void ASCharacter::OnHealthChanged(USHealthComponent* CharacterHealthComp, float 
 		//player animation
 		bPlayerDied = true;
 
-		//if player has the flag, drop it
-		if (FlagOnPlayer)
-		{
-			FlagOnPlayer->OnDropped();
-		}
-
 		GetMovementComponent()->StopMovementImmediately();
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -350,23 +352,22 @@ void ASCharacter::OnHealthChanged(USHealthComponent* CharacterHealthComp, float 
 
 void ASCharacter::AddPowerupChargeToPlayer(EAbilityPickupType PickupType, int Charges)
 {
-	if (GetLocalRole() == ROLE_Authority)
-	{
-		for (int i = 0; i < AbilityStructArray.Num(); i++)
-		{
-			if (AbilityStructArray[i].AbilityEnum == PickupType)
-			{
-				AbilityStructArray[i].NumberOfCharges += Charges;
-
-				//UE_LOG(LogTemp, Log, TEXT("Ability: %s"), *FString(Powerup->GetName()));
-				UE_LOG(LogTemp, Log, TEXT("Total charges: %d"), AbilityStructArray[i].NumberOfCharges);
-			}
-		}
-	}
-	else
+	if (GetLocalRole() < ROLE_Authority)
 	{
 		ServerAddPowerupChargeToPlayer(PickupType, Charges);
 	}
+
+	for (int i = 0; i < AbilityStructArray.Num(); i++)
+	{
+		if (AbilityStructArray[i].AbilityEnum == PickupType)
+		{
+			AbilityStructArray[i].NumberOfCharges += Charges;
+
+			//UE_LOG(LogTemp, Log, TEXT("Ability: %s"), *FString(Powerup->GetName()));
+			UE_LOG(LogTemp, Log, TEXT("Total charges: %d"), AbilityStructArray[i].NumberOfCharges);
+		}
+	}
+
 }
 
 void ASCharacter::InitialiseAbility(EAbilityPickupType PickupType, TSubclassOf<ASPowerupBase> AbilityClass, int Charges)
@@ -531,23 +532,43 @@ void ASCharacter::ServerAddPowerupChargeToPlayer_Implementation(EAbilityPickupTy
 
 //  ------------ Flag Functions ------------  //
 
-void ASCharacter::PickupFlag(ASFlag* Flag)
+void ASCharacter::PickupFlag(ASCharacter* PickupActor, ASFlag* Flag)
 {
-	if (GetLocalRole() < ROLE_Authority && Flag && !Flag->GetFlagHolder())
+	if (GetLocalRole() < ROLE_Authority)
 	{
-		Flag->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FlagAttachSocketName);
-		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Attach flag to player")));
+		ServerPickupFlag(PickupActor, Flag);
 	}
+	
+	FlagOnPlayer = Flag;
+	FlagOnPlayer->AttachToComponent(Cast<ASCharacter>(PickupActor)->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FlagAttachSocketName);
+	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Attach flag to player")));
 }
 
-void ASCharacter::DropFlag()
+void ASCharacter::DropFlag(ASCharacter* PickupActor, ASFlag* Flag)
 {
-	if (GetLocalRole() < ROLE_Authority && FlagOnPlayer)
+	if (GetLocalRole() < ROLE_Authority)
 	{
-		FlagOnPlayer->OnDropped();
+		ServerDropFlag(PickupActor, Flag);
+	}
+
+	if (FlagOnPlayer && FlagOnPlayer == Flag)
+	{
+		FlagOnPlayer->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		FlagOnPlayer = nullptr;
 	}
+
 }
+
+void ASCharacter::ServerPickupFlag_Implementation(ASCharacter* PickupActor, ASFlag* Flag)
+{
+	PickupFlag(PickupActor, Flag);
+}
+
+void ASCharacter::ServerDropFlag_Implementation(ASCharacter* PickupActor, ASFlag* Flag)
+{
+	DropFlag(PickupActor, Flag);
+}
+
 
 //  ------------ Movement Functions ------------  //
 
@@ -850,8 +871,8 @@ void ASCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASCharacter, CurrentWeapon);
 	DOREPLIFETIME(ASCharacter, SelectedAbility);
 	DOREPLIFETIME(ASCharacter, AbilityInfoStruct);
-	DOREPLIFETIME(ASCharacter, AbilityStructArray);
-
+	DOREPLIFETIME(ASCharacter, AbilityStructArray);	
+	
 	DOREPLIFETIME(ASCharacter, bPlayerDied);
 	DOREPLIFETIME(ASCharacter, bIsZooming);
 	DOREPLIFETIME(ASCharacter, bSprinting);

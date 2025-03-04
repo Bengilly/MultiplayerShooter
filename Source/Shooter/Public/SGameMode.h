@@ -45,6 +45,7 @@ protected:
 	FTimerHandle TimerHandler_WarmupTimer;
 	FTimerHandle TimerHandler_FreezeTimer;
 	FTimerHandle TimerHandler_RespawnTimer;
+	FTimerHandle TimerHandler_FlagTimer;
 
 	TArray<ASPlayerController*> ConnectedPlayersArray;
 
@@ -59,6 +60,9 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly, EditDefaultsOnly)
 	float RespawnTimer;
 
+	UPROPERTY(Replicated, BlueprintReadOnly, EditDefaultsOnly)
+	float TimeWithFlag;
+
 	//  ------------ Functions ------------  //
 
 	virtual void StartPlay() override;
@@ -72,9 +76,13 @@ protected:
 	void MatchTimerInterval();
 	void SetGameState(EGameState NewState);
 
+	//timers
 	void RespawnAllDeadPlayers();
 	void StartRespawnTimer();
 	void RespawnTimerInterval();
+
+	UFUNCTION()
+	void FlagTimerInterval(AActor* PickupActor);
 
 	FTransform FindRandomSpawnLocation();
 
@@ -82,7 +90,14 @@ protected:
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
+	UFUNCTION()
+	void PlayerPickedUpFlag(ASCharacter* PickupActor, ASFlag* FlagActor);
 
+	UFUNCTION()
+	void PlayerDroppedFlag(ASCharacter* PickupActor, ASFlag* FlagActor);
+
+	UFUNCTION()
+	void OnPlayerKilled(AActor* EnemyKilled, AActor* DamagingActor, AController* DamagingActorController);
 
 	//  ------------ Variables ------------  //
 

@@ -6,14 +6,14 @@
 #include "GameFramework/RotatingMovementComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "SCharacter.h"
-#include "SGameMode.h"
 
 // Sets default values
 ASFlag::ASFlag()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	//bReplicates = true;
+    bReplicates = true;
+
 	//FlagHolder = nullptr;
 
     MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
@@ -43,38 +43,22 @@ void ASFlag::Tick(float DeltaTime)
 void ASFlag::NotifyActorBeginOverlap(AActor* Player)
 {
     Super::NotifyActorBeginOverlap(Player);
-    
-    ASCharacter* PlayerPawn = Cast<ASCharacter>(Player);
-    PlayerPawn->PickupFlag(this);
-    OnFlagPickedUp(PlayerPawn);
-}
 
-void ASFlag::OnFlagPickedUp(ASCharacter* NewFlagHolder)
-{
-    if (GetLocalRole() < ROLE_Authority)
-    {
-        FlagHolder = NewFlagHolder;
-        GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Flag picked up by: %s"), *FlagHolder->GetName()));
+    FlagHolder = Cast<ASCharacter>(Player);
 
-        ASGameMode* GM = Cast<ASGameMode>(GetWorld()->GetAuthGameMode());
-        if (GM)
-        {
-            //start timer
-            // GM->
-        }
-        else
-        {
-            UE_LOG(LogTemp, Log, TEXT("(Spawning) Gamemode is null..."));
-        }
-    }
+    //broadcast flag pickup to GM and Character class
+    OnFlagPickedUp.Broadcast(FlagHolder, this);
 }
 
 void ASFlag::OnDropped()
 {
-    if (GetLocalRole() < ROLE_Authority)
-    {
+    //if (GetLocalRole())
+    //{
+        //broadcast flag pickup to GM and Character class
+        OnFlagDropped.Broadcast(FlagHolder, this);
+
         FlagHolder = nullptr;
-    }
+    //}
 }
 
 ASCharacter* ASFlag::GetFlagHolder()

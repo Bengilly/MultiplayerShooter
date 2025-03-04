@@ -10,6 +10,9 @@ class ASCharacter;
 class URotatingMovementComponent;
 class UStaticMeshComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnFlagPickedUp, ASCharacter*, PickupActor, ASFlag*, FlagActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnFlagDropped, ASCharacter*, PickupActor, ASFlag*, FlagActor);
+
 UCLASS()
 class SHOOTER_API ASFlag : public AActor
 {
@@ -20,8 +23,13 @@ public:
 	ASFlag();
 	ASCharacter* GetFlagHolder();
 
-	void OnFlagPickedUp(ASCharacter* NewFlagHolder);
 	void OnDropped();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnFlagPickedUp OnFlagPickedUp;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnFlagDropped OnFlagDropped;
 
 protected:
 

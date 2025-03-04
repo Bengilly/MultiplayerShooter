@@ -14,6 +14,7 @@
 #include "Components/ArrowComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "SPlayerController.h"
+#include "SFlag.h"
 
 ASGameMode::ASGameMode()
 {
@@ -40,6 +41,16 @@ void ASGameMode::BeginPlay()
 	GS->UpdateRespawnTimerToPlayers(RespawnTimer);
 
 	StartFreezeTimer();
+
+	//bind event when player picks up flag
+	ASFlag* Flag = Cast<ASFlag>(UGameplayStatics::GetActorOfClass(GetWorld(), ASFlag::StaticClass()));
+	if (Flag)
+	{
+		Flag->OnFlagPickedUp.AddDynamic(this, &ASGameMode::PlayerPickedUpFlag);
+		Flag->OnFlagDropped.AddDynamic(this, &ASGameMode::PlayerDroppedFlag);
+	}
+
+	OnActorKilled.AddDynamic(this, &ASGameMode::OnPlayerKilled);
 }
 
 void ASGameMode::StartPlay()
@@ -121,6 +132,7 @@ void ASGameMode::MatchTimerInterval()
 		UE_LOG(LogTemp, Log, TEXT("Match has ended!"));
 
 		GetWorldTimerManager().ClearTimer(TimerHandler_GameTimer);
+		GetWorldTimerManager().ClearTimer(TimerHandler_FlagTimer);
 
 		//disable player input
 		SetPlayerInput(false);
@@ -279,7 +291,61 @@ void ASGameMode::ServerTravelToMap(const FString& MapName)
 	}
 }
 
+//starts timer for player to increase score
+void ASGameMode::PlayerPickedUpFlag(ASCharacter* PickupActor, ASFlag* FlagActor)
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Player %s has picked up the flag!!"), *PickupActor->GetName()));
 
+	//start timer to begin accumulating points for player
+	FTimerDelegate TimerDel;
+	TimerDel.BindUFunction(this, "FlagTimerInterval", PickupActor);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandler_FlagTimer, TimerDel, 1.0f, true, 0);
+
+}
+
+void ASGameMode::FlagTimerInterval(AActor* PickupActor)
+{
+	TimeWithFlag += 1.0f;
+	UE_LOG(LogTemp, Log, TEXT("Player has held flag for %f seconds"), TimeWithFlag);
+	GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Player has held flag for %f seconds"), TimeWithFlag));
+
+	APawn* PlayerPawn = Cast<APawn>(PickupActor);
+	if (PlayerPawn)
+	{
+		ASPlayerState* PS = Cast<ASPlayerState>(PlayerPawn->GetPlayerState());
+		PS->UpdateScore(10);
+	}
+}
+
+void ASGameMode::PlayerDroppedFlag(ASCharacter* PickupActor, ASFlag* FlagActor)
+{
+	FVector PlayerLocation = PickupActor->GetActorLocation();
+	FlagActor->SetActorLocation(PlayerLocation);
+	GetWorldTimerManager().ClearTimer(TimerHandler_FlagTimer);
+}
+
+void ASGameMode::OnPlayerKilled(AActor* EnemyKilled, AActor* DamagingActor, AController* DamagingActorController)
+{
+	//update the death counter for the player killed
+	APawn* KilledPlayerPawn = Cast<APawn>(EnemyKilled);
+	ASPlayerState* KilledPS = Cast<ASPlayerState>(KilledPlayerPawn->GetPlayerState());
+	KilledPS->SetTotalPlayerDeaths();
+
+	//call event to drop the flag 
+	ASFlag* Flag = Cast<ASFlag>(UGameplayStatics::GetActorOfClass(GetWorld(), ASFlag::StaticClass()));
+	if (Flag->GetFlagHolder() == EnemyKilled)
+	{
+		Flag->OnDropped();
+	}
+
+	//update kill counter for the player killer
+	if (KilledPlayerPawn->IsPlayerControlled())
+	{
+		APawn* KillerPlayerPawn = DamagingActorController->GetPawn();
+		ASPlayerState* KillerPS = Cast<ASPlayerState>(KillerPlayerPawn->GetPlayerState());
+		KillerPS->SetTotalPlayerKills();
+	}
+}
 
 void ASGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -288,6 +354,7 @@ void ASGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	//replicate variables
 	DOREPLIFETIME(ASGameMode, MatchDuration);
 	DOREPLIFETIME(ASGameMode, RespawnTimer);
+	DOREPLIFETIME(ASGameMode, TimeWithFlag);
 }
 
 

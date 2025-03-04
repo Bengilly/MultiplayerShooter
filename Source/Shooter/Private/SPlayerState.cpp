@@ -15,6 +15,7 @@ void ASPlayerState::UpdateScore(float ScoreToAdd)
 {
 	Score = GetScore();
 	SetScore(Score += ScoreToAdd);
+	UE_LOG(LogTemp, Log, TEXT("Player Score: %f"), Score);
 }
 
 void ASPlayerState::SetTotalPlayerKills()
@@ -57,5 +58,4 @@ void ASPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(ASPlayerState, PlayerName);
 	DOREPLIFETIME(ASPlayerState, Deaths);
 	DOREPLIFETIME(ASPlayerState, Kills);
-	DOREPLIFETIME(ASPlayerState, Score);
 }

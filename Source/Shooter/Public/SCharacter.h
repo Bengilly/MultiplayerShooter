@@ -67,8 +67,6 @@ public:
 	UPROPERTY(Replicated, BlueprintReadWrite)
 	bool bIsInvisible;
 
-	void PickupFlag(ASFlag* Flag);
-
 protected:
 
 	//  ------------ Variables ------------  //
@@ -238,7 +236,10 @@ protected:
 	void SetCurrentWeapon(ASWeapon* NewWeapon, ASWeapon* PreviousWeapon);
 	bool CanSwitchWeapon(ASWeapon* Weapon);
 
-	void DropFlag();
+	UFUNCTION()
+	void PickupFlag(ASCharacter* PickupActor, ASFlag* Flag);
+	UFUNCTION()
+	void DropFlag(ASCharacter* PickupActor, ASFlag* Flag);
 
 	void MoveForward(float value);
 	void MoveRight(float value);
@@ -303,6 +304,12 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerStopSprinting();
+
+	UFUNCTION(Server, Reliable)
+	void ServerPickupFlag(ASCharacter* PickupActor, ASFlag* Flag);
+
+	UFUNCTION(Server, Reliable)
+	void ServerDropFlag(ASCharacter* PickupActor, ASFlag* Flag);
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
