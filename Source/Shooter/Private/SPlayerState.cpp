@@ -8,7 +8,7 @@
 ASPlayerState::ASPlayerState()
 {
 	Deaths = 0;
-	Score = 0;
+	//Score = 0;
 }
 
 void ASPlayerState::UpdateScore(float ScoreToAdd)

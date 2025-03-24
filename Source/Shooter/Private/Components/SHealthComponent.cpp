@@ -64,7 +64,7 @@ void USHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, 
 		ASGameMode* GM = Cast<ASGameMode>(GetWorld()->GetAuthGameMode());
 		if (GM)
 		{
-			//blueprint function - update kills if killed actor was a player
+			//update kills if killed actor was a player
 			GM->OnActorKilled.Broadcast(GetOwner(), DamageCauser, InstigatedBy);
 			
 			//if the owner of this health component is a player, destroy current pawn and call playercontroller class to respawn pawn
@@ -72,6 +72,7 @@ void USHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, 
 			if (Pawn->IsPlayerControlled())
 			{
 				ASPlayerController* PC = Cast<ASPlayerController>(Pawn->GetController());
+				Pawn->SetActorEnableCollision(false);
 				Pawn->DetachFromControllerPendingDestroy();
 				Pawn->SetLifeSpan(5.0f);
 

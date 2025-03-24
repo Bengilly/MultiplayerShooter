@@ -25,10 +25,7 @@ public:
 
 	void OnDropped();
 
-	UPROPERTY(BlueprintAssignable)
 	FOnFlagPickedUp OnFlagPickedUp;
-
-	UPROPERTY(BlueprintAssignable)
 	FOnFlagDropped OnFlagDropped;
 
 protected:
@@ -49,6 +46,17 @@ protected:
 
 	virtual void BeginPlay() override;
 	void NotifyActorBeginOverlap(AActor* Player);
+	void OnPickedUp(AActor* Player);
+
+
+	//  ------------ Multiplayer ------------  //
+	
+	UFUNCTION(Server, Reliable)
+	void ServerOnPickedUp(AActor* Player);
+
+	UFUNCTION(Server, Reliable)
+	void ServerOnDropped();
+
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 public:	

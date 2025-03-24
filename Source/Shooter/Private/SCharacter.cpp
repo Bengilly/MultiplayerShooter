@@ -64,7 +64,6 @@ void ASCharacter::BeginPlay()
 
 	DefaultFOV = CameraComponent->FieldOfView;
 
-
 	HealthComponent->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChanged);
 
 	ASFlag* Flag = Cast<ASFlag>(UGameplayStatics::GetActorOfClass(GetWorld(), ASFlag::StaticClass()));
@@ -352,20 +351,22 @@ void ASCharacter::OnHealthChanged(USHealthComponent* CharacterHealthComp, float 
 
 void ASCharacter::AddPowerupChargeToPlayer(EAbilityPickupType PickupType, int Charges)
 {
-	if (GetLocalRole() < ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		for (int i = 0; i < AbilityStructArray.Num(); i++)
+		{
+			if (AbilityStructArray[i].AbilityEnum == PickupType)
+			{
+				AbilityStructArray[i].NumberOfCharges += Charges;
+
+				//UE_LOG(LogTemp, Log, TEXT("Ability: %s"), *FString(Powerup->GetName()));
+				UE_LOG(LogTemp, Log, TEXT("Total charges: %d"), AbilityStructArray[i].NumberOfCharges);
+			}
+		}
+	}
+	else
 	{
 		ServerAddPowerupChargeToPlayer(PickupType, Charges);
-	}
-
-	for (int i = 0; i < AbilityStructArray.Num(); i++)
-	{
-		if (AbilityStructArray[i].AbilityEnum == PickupType)
-		{
-			AbilityStructArray[i].NumberOfCharges += Charges;
-
-			//UE_LOG(LogTemp, Log, TEXT("Ability: %s"), *FString(Powerup->GetName()));
-			UE_LOG(LogTemp, Log, TEXT("Total charges: %d"), AbilityStructArray[i].NumberOfCharges);
-		}
 	}
 
 }
@@ -534,29 +535,32 @@ void ASCharacter::ServerAddPowerupChargeToPlayer_Implementation(EAbilityPickupTy
 
 void ASCharacter::PickupFlag(ASCharacter* PickupActor, ASFlag* Flag)
 {
-	if (GetLocalRole() < ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		FlagOnPlayer = Flag;
+		FlagOnPlayer->AttachToComponent(Cast<ASCharacter>(PickupActor)->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FlagAttachSocketName);
+		//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Attach flag to player")));
+	}
+	else
 	{
 		ServerPickupFlag(PickupActor, Flag);
 	}
-	
-	FlagOnPlayer = Flag;
-	FlagOnPlayer->AttachToComponent(Cast<ASCharacter>(PickupActor)->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FlagAttachSocketName);
-	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Attach flag to player")));
 }
 
 void ASCharacter::DropFlag(ASCharacter* PickupActor, ASFlag* Flag)
 {
-	if (GetLocalRole() < ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		if (FlagOnPlayer && FlagOnPlayer == Flag)
+		{
+			FlagOnPlayer->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			FlagOnPlayer = nullptr;
+		}
+	}
+	else
 	{
 		ServerDropFlag(PickupActor, Flag);
 	}
-
-	if (FlagOnPlayer && FlagOnPlayer == Flag)
-	{
-		FlagOnPlayer->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		FlagOnPlayer = nullptr;
-	}
-
 }
 
 void ASCharacter::ServerPickupFlag_Implementation(ASCharacter* PickupActor, ASFlag* Flag)

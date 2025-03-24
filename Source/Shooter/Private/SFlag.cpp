@@ -44,26 +44,52 @@ void ASFlag::NotifyActorBeginOverlap(AActor* Player)
 {
     Super::NotifyActorBeginOverlap(Player);
 
-    FlagHolder = Cast<ASCharacter>(Player);
+	OnPickedUp(Player);
+}
 
-    //broadcast flag pickup to GM and Character class
-    OnFlagPickedUp.Broadcast(FlagHolder, this);
+void ASFlag::OnPickedUp(AActor* Player)
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+        FlagHolder = Cast<ASCharacter>(Player);
+
+		//broadcast flag pickup to GM and Character class
+		OnFlagPickedUp.Broadcast(FlagHolder, this);
+	}
+    else
+    {
+        ServerOnPickedUp(Player);
+    }
 }
 
 void ASFlag::OnDropped()
 {
-    //if (GetLocalRole())
-    //{
+    if (GetLocalRole() == ROLE_Authority)
+    {
         //broadcast flag pickup to GM and Character class
         OnFlagDropped.Broadcast(FlagHolder, this);
 
         FlagHolder = nullptr;
-    //}
+    }
+    else
+    {
+		ServerOnDropped();
+    }
 }
 
 ASCharacter* ASFlag::GetFlagHolder()
 {
     return FlagHolder;
+}
+
+void ASFlag::ServerOnPickedUp_Implementation(AActor* Player)
+{
+	OnPickedUp(Player);
+}
+
+void ASFlag::ServerOnDropped_Implementation()
+{
+	OnDropped();
 }
 
 //replicate the line trace

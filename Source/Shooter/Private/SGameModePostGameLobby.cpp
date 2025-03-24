@@ -32,4 +32,5 @@ void ASGameModePostGameLobby::PostLogin(APlayerController* NewPlayerController)
 
 void ASGameModePostGameLobby::Logout(AController* PlayerController)
 {
+
 }

@@ -9,6 +9,7 @@
 class APlayerStart;
 class ASCharacter;
 class ASPlayerController;
+class ASPlayerState;
 
 //forward delcare enum class in gamestate
 enum class EGameState : uint8;
@@ -30,7 +31,7 @@ public:
 
 	void SpawnPlayer(ASPlayerController* PlayerController, bool IsRespawn);
 
-	UPROPERTY(BlueprintAssignable, Category = "GameMode")
+	//UPROPERTY(BlueprintAssignable, Category = "GameMode")
 	FOnActorKilled OnActorKilled;
 
 protected:

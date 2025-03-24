@@ -170,7 +170,6 @@ void ASGameMode::SpawnPlayer(ASPlayerController* PlayerController, bool IsRespaw
 		{
 			PlayerController->ClientEnablePlayerInput();
 		}
-
 	}
 }
 
@@ -291,6 +290,7 @@ void ASGameMode::ServerTravelToMap(const FString& MapName)
 	}
 }
 
+
 //starts timer for player to increase score
 void ASGameMode::PlayerPickedUpFlag(ASCharacter* PickupActor, ASFlag* FlagActor)
 {
@@ -307,7 +307,7 @@ void ASGameMode::FlagTimerInterval(AActor* PickupActor)
 {
 	TimeWithFlag += 1.0f;
 	UE_LOG(LogTemp, Log, TEXT("Player has held flag for %f seconds"), TimeWithFlag);
-	GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Player has held flag for %f seconds"), TimeWithFlag));
+	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Player has held flag for %f seconds"), TimeWithFlag));
 
 	APawn* PlayerPawn = Cast<APawn>(PickupActor);
 	if (PlayerPawn)
