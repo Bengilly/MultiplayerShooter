@@ -46,7 +46,7 @@ void ASPlayerState::SetCustomPlayerName(FString Name)
 
 FString ASPlayerState::GetCustomPlayerName() const
 {
-	GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("GetPlayerName: %s"), *PlayerName));
+	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("GetPlayerName: %s"), *PlayerName));
 	return PlayerName;
 }
 

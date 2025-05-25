@@ -23,8 +23,8 @@ ASFlag::ASFlag()
     RootComponent = MeshComponent;
 
     //spin powerup object around the Z axis
-    RotatingComponent = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingComponent"));
-    RotatingComponent->RotationRate.Yaw = 180.0f;
+    //RotatingComponent = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingComponent"));
+    //RotatingComponent->RotationRate.Yaw = 180.0f;
 }
 
 // Called when the game starts or when spawned
@@ -37,6 +37,8 @@ void ASFlag::BeginPlay()
 void ASFlag::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+    SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
 
 }
 

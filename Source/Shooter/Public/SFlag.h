@@ -35,10 +35,10 @@ protected:
 	UPROPERTY(Replicated)
 	ASCharacter* FlagHolder;
 
-	UPROPERTY(VisibleAnywhere, Category = "Flag Components")
+	UPROPERTY(VisibleAnywhere, Category = "Flag")
 	URotatingMovementComponent* RotatingComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Flag Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Flag")
 	UStaticMeshComponent* MeshComponent;
 
 

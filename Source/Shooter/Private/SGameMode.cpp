@@ -15,6 +15,7 @@
 #include "Net/UnrealNetwork.h"
 #include "SPlayerController.h"
 #include "SFlag.h"
+#include "SWolf.h"
 
 ASGameMode::ASGameMode()
 {
@@ -26,7 +27,7 @@ ASGameMode::ASGameMode()
 	PrimaryActorTick.TickInterval = 1.0f;
 	PrimaryActorTick.bCanEverTick = true;
 
-	MatchDuration = 60.0f;
+	MatchDuration = 120.0f;
 	FreezeDuration = 5.0f;
 	RespawnTimer = 10.0f;
 }
@@ -253,9 +254,14 @@ void ASGameMode::RespawnTimerInterval()
 		//empty spawn location array so they can be reused next spawn wave
 		UsedSpawnLocations.Empty();
 
-		//set and restart respawn timer
 		RespawnTimer = 10.0;
-		StartRespawnTimer();
+
+		//set and restart respawn timer, if match tim
+		if (MatchDuration > RespawnTimer)
+		{
+			StartRespawnTimer();
+		}
+
 	}
 
 	ASGameState* GS = GetGameState<ASGameState>();
@@ -326,24 +332,33 @@ void ASGameMode::PlayerDroppedFlag(ASCharacter* PickupActor, ASFlag* FlagActor)
 
 void ASGameMode::OnPlayerKilled(AActor* EnemyKilled, AActor* DamagingActor, AController* DamagingActorController)
 {
-	//update the death counter for the player killed
-	APawn* KilledPlayerPawn = Cast<APawn>(EnemyKilled);
-	ASPlayerState* KilledPS = Cast<ASPlayerState>(KilledPlayerPawn->GetPlayerState());
-	KilledPS->SetTotalPlayerDeaths();
-
-	//call event to drop the flag 
-	ASFlag* Flag = Cast<ASFlag>(UGameplayStatics::GetActorOfClass(GetWorld(), ASFlag::StaticClass()));
-	if (Flag->GetFlagHolder() == EnemyKilled)
-	{
-		Flag->OnDropped();
-	}
-
-	//update kill counter for the player killer
+	APawn* KilledPlayerPawn = Cast<APawn>(EnemyKilled);	
 	if (KilledPlayerPawn->IsPlayerControlled())
 	{
-		APawn* KillerPlayerPawn = DamagingActorController->GetPawn();
-		ASPlayerState* KillerPS = Cast<ASPlayerState>(KillerPlayerPawn->GetPlayerState());
-		KillerPS->SetTotalPlayerKills();
+		if (DamagingActorController->GetPawn()->IsPlayerControlled())
+		{
+			//update the death counter for the player killed
+			ASPlayerState* KilledPS = Cast<ASPlayerState>(KilledPlayerPawn->GetPlayerState());
+			KilledPS->SetTotalPlayerDeaths();
+
+			//update kill counter for the player killer
+			APawn* KillerPlayerPawn = DamagingActorController->GetPawn();
+			ASPlayerState* KillerPS = Cast<ASPlayerState>(KillerPlayerPawn->GetPlayerState());
+			KillerPS->SetTotalPlayerKills();
+		}
+
+		//call event to drop the flag 
+		ASFlag* Flag = Cast<ASFlag>(UGameplayStatics::GetActorOfClass(GetWorld(), ASFlag::StaticClass()));
+		if (Flag->GetFlagHolder() == EnemyKilled)
+		{
+			Flag->OnDropped();
+		}
+	}
+	else if(EnemyKilled->IsA(ASWolf::StaticClass()))
+	{
+		//if the killed actor is a wolf, destroy it (e.g. wolf) - I can add further logic here if needed e.g. track wolf kills
+		ASWolf* KilledWolf = Cast<ASWolf>(EnemyKilled);
+		KilledWolf->OnDeath();
 	}
 }
 

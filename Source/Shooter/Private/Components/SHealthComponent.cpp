@@ -64,7 +64,6 @@ void USHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, 
 		ASGameMode* GM = Cast<ASGameMode>(GetWorld()->GetAuthGameMode());
 		if (GM)
 		{
-			//update kills if killed actor was a player
 			GM->OnActorKilled.Broadcast(GetOwner(), DamageCauser, InstigatedBy);
 			
 			//if the owner of this health component is a player, destroy current pawn and call playercontroller class to respawn pawn

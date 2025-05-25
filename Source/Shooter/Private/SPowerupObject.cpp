@@ -27,11 +27,16 @@ ASPowerupObject::ASPowerupObject()
 
 void ASPowerupObject::AddPowerupToPlayer(AActor* Player)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("AbilityPickupType: %d"), AbilityPickupType));
-	int ChargesToAdd = 1;
-	PlayerCharacter = Cast<ASCharacter>(Player);
-	PlayerCharacter->AddPowerupChargeToPlayer(AbilityPickupType, ChargesToAdd); //AbilityPickupType enum is set against ability BP on beginplay
+	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("AbilityPickupType: %d"), AbilityPickupType));
 
+	int ChargesToAdd = 1;
+
+	PlayerCharacter = Cast<ASCharacter>(Player);
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->AddPowerupChargeToPlayer(AbilityPickupType, ChargesToAdd); //AbilityPickupType enum is set against ability BP on beginplay
+	}
+	
 	bAbilityCollected = true;
 	OnRep_AbilityCollected();
 	Destroy();

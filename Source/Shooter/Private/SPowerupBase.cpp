@@ -49,7 +49,7 @@ void ASPowerupBase::ActivateAbility(AActor* PlayerToApplyAbilityTo)
 void ASPowerupBase::OnAbilityTick()
 {
 	TickCount++;
-	GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("TickCount: %d"), TickCount));
+	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("TickCount: %d"), TickCount));
 
 	//effect finishes	
 	if (TickCount >= TotalNumberOfTicks)

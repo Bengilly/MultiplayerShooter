@@ -23,7 +23,7 @@ protected:
 
 	//  ------------ Variables ------------  //
 
-	ASPickupObject* PickupObjectInstance;
+	AActor* ActorInstance;
 
 	// area bounds for random point generation
 	FVector Origin;
@@ -36,8 +36,9 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category = "Spawning")
 	int32 NumberOfActorsToSpawn = 100;
 
+	//set actor to spawn for each instance of the spawner
 	UPROPERTY(EditInstanceOnly, Category = "Spawning")
-	TSubclassOf<ASPickupObject> PickupObjectClass;
+	TSubclassOf<AActor> ActorToSpawn;
 
 	//  ------------ Functions ------------  //
 	
@@ -45,11 +46,6 @@ protected:
 	virtual void BeginPlay() override;
 
 	void SpawnPickupObjects();
-
-
-	// Helper function to get random points
-	FVector GetRandomPointInBounds() const;
-
 
 public:	
 	// Called every frame

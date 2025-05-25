@@ -19,9 +19,7 @@ void ASPickupSpawner::BeginPlay()
 
 	if (Landscape)
 	{
-
-
-		// Call the spawn function
+		//call the spawn function
 		SpawnPickupObjects();
 	}
 	else
@@ -32,7 +30,7 @@ void ASPickupSpawner::BeginPlay()
 
 void ASPickupSpawner::SpawnPickupObjects()
 {
-	if (!PickupObjectClass)
+	if (!ActorToSpawn)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ActorToSpawn reference is null"));
 		return;
@@ -45,16 +43,16 @@ void ASPickupSpawner::SpawnPickupObjects()
 		return;
 	}
 
-	// Get the bounds of the landscape
+	//get the bounds of the landscape
 	FBox LandscapeBounds = Landscape->GetComponentsBoundingBox();
 
 	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Spawning pickups...")));
 
-	//loop through and spawn pickup objects in random locations within the landscape bounds
+	//loop through and spawn pickup actors in random locations within the landscape bounds
 	for (int32 i = 0; i < NumberOfActorsToSpawn; i++)
 	{
 
-		// Generate a random X and Y within the landscape bounds
+		//generate a random X and Y within the landscape bounds
 		float RandomX = FMath::RandRange(0.0f, 50400.0f);
 		float RandomY = FMath::RandRange(0.0f, 50400.0f);
 		//GEngine->AddOnScreenDebugMessage(-1, 30.0, FColor::Green, FString::Printf(TEXT("X: %s | Y: %s"), *FString::SanitizeFloat(RandomX), *FString::SanitizeFloat(RandomY)));
@@ -79,17 +77,19 @@ void ASPickupSpawner::SpawnPickupObjects()
 			UE_LOG(LogTemp, Warning, TEXT("Linetrace hit"));
 
 			FVector SpawnLocation = HitResult.ImpactPoint;
-			SpawnLocation.Z += 20.0f;
+			SpawnLocation.Z += 50.0f;
 
-			//setup spawn parameters & spawn pickup object
+			//setup spawn parameters
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
-			PickupObjectInstance = World->SpawnActor<ASPickupObject>(PickupObjectClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
+
+			//spawn actor 
+			ActorInstance = World->SpawnActor<AActor>(ActorToSpawn, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
 		}
 		else
 		{
 			//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("No linetrace hit")));
-			DrawDebugLine(GetWorld(), Start, End, FColor::Red, true, -1.0f, 0.0f, 2.0f);
+			//DrawDebugLine(GetWorld(), Start, End, FColor::Red, true, -1.0f, 0.0f, 2.0f);
 			UE_LOG(LogTemp, Warning, TEXT("No linetrace hit"));
 		}
 	}

@@ -535,7 +535,7 @@ void ASCharacter::ServerAddPowerupChargeToPlayer_Implementation(EAbilityPickupTy
 
 void ASCharacter::PickupFlag(ASCharacter* PickupActor, ASFlag* Flag)
 {
-	if (GetLocalRole() == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority && PickupActor)
 	{
 		FlagOnPlayer = Flag;
 		FlagOnPlayer->AttachToComponent(Cast<ASCharacter>(PickupActor)->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FlagAttachSocketName);
@@ -595,7 +595,7 @@ void ASCharacter::BeginCrouch()
 {
 	if (bIsAbilityActiveOnPlayer)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Ability blocked...")));
+		//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Ability blocked...")));
 		return;
 	}
 
@@ -613,6 +613,12 @@ void ASCharacter::BeginCrouch()
 
 void ASCharacter::EndCrouch()
 {
+	if (bIsAbilityActiveOnPlayer)
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Ability blocked...")));
+		return;
+	}
+
 	if (bIsZooming)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = 200.0f;
@@ -693,7 +699,7 @@ void ASCharacter::StartSprinting()
 		ServerStartSprinting();
 	}
 
-	if (bIsZooming)
+	if (bIsZooming || bIsAbilityActiveOnPlayer)
 	{
 		return;
 	}
@@ -709,7 +715,7 @@ void ASCharacter::StopSprinting()
 		ServerStopSprinting();
 	}
 
-	if (bIsZooming)
+	if (bIsZooming || bIsAbilityActiveOnPlayer)
 	{
 		return;
 	}
