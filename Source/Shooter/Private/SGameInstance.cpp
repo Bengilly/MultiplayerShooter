@@ -39,17 +39,28 @@ void USGameInstance::CreateMultiplayerSession(FName SessionName)
 {
 	UE_LOG(LogTemp, Log, TEXT("(Session) Creating multiplayer server..."));
 
+
+
 	FOnlineSessionSettings SessionSettings;
 	SessionSettings.bAllowJoinInProgress = true;
 	SessionSettings.bIsDedicated = false;		
-	SessionSettings.bIsLANMatch = (IOnlineSubsystem::Get()->GetSubsystemName() != "NULL") ? false : true;		//set to false for local testing
+	//SessionSettings.bIsLANMatch = (IOnlineSubsystem::Get()->GetSubsystemName() != "NULL") ? false : true;		//set to false for local testing
+	SessionSettings.bIsLANMatch = false; //using steam
 	SessionSettings.bShouldAdvertise = true;
 	SessionSettings.bUsesPresence = true;
 	SessionSettings.NumPublicConnections = MaxPlayers;		//pull from UI
 
 	SessionSettings.Set(FName("SESSION_NAME_KEY"), SessionName.ToString(), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
-	SessionInterface->CreateSession(0, SessionName, SessionSettings);
+	//SessionInterface->CreateSession(0, SessionName, SessionSettings);
+
+	bool bCreateSessionResult = SessionInterface->CreateSession(0, SessionName, SessionSettings);
+	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Session) CreateSession returned: %d"), bCreateSessionResult));
+
+	if (!bCreateSessionResult)
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Session) CreateSession() failed to start")));
+	}
 }
 
 //perform server travel to load level on session creation
@@ -58,6 +69,7 @@ void USGameInstance::OnCreateSessionComplete(FName Name, bool bSucceeded)
 	UE_LOG(LogTemp, Log, TEXT("(Session) Session created successfully: %d"), bSucceeded);
 	if (bSucceeded)
 	{
+		//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("bSucceeded")));
 		const FString& MapName = "Level_Lobby";
 		if (UWorld* World = GetWorld())
 		{
@@ -67,6 +79,10 @@ void USGameInstance::OnCreateSessionComplete(FName Name, bool bSucceeded)
 			//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Loading Level_Lobby...")));
 		}
 	}
+	else
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("bSucceeded = false")));
+	}
 }
 
 void USGameInstance::FindMultiplayerSession()
@@ -74,7 +90,7 @@ void USGameInstance::FindMultiplayerSession()
 	UE_LOG(LogTemp, Log, TEXT("(Session) Finding multiplayer server..."));
 
 	OnlineSessionSearch = MakeShareable(new FOnlineSessionSearch());
-	OnlineSessionSearch->bIsLanQuery = true;
+	OnlineSessionSearch->bIsLanQuery = false;	//switch to true for local testing
 	OnlineSessionSearch->MaxSearchResults = 10000;
 	OnlineSessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 

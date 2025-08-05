@@ -8,6 +8,7 @@
 
 class ASCharacter;
 class USHealthComponent;
+class UAudioComponent;
 
 UCLASS()
 class SHOOTER_API ASWolf : public ACharacter
@@ -27,6 +28,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USHealthComponent* HealthComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
+	UAudioComponent* WolfAudioComponent;
+
 	//wolf damage (customizable)
 	UPROPERTY(EditDefaultsOnly, Category = "Wolf")
 	float WolfDamage;
@@ -42,10 +46,14 @@ protected:
 	//reference to the player character
 	ASCharacter* PlayerCharacter;
 
-	//flag for detecting if the wolf is currently chasing the player, updates animation
+	//flag for detecting if the wolf is currently chasing the player
 	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Wolf")
 	bool bIsChasing;
 
+	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Wolf")
+	bool bHasGrowled;
+
+	//  ------------ Animation Variables ------------  //
 	UPROPERTY(Replicated, BlueprintReadWrite, Category = "Wolf")
 	bool bIsWalking;
 

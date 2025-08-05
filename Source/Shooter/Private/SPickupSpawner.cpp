@@ -17,7 +17,7 @@ void ASPickupSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (Landscape)
+	if (Landscape && GetLocalRole() == ROLE_Authority)
 	{
 		//call the spawn function
 		SpawnPickupObjects();
@@ -72,7 +72,7 @@ void ASPickupSpawner::SpawnPickupObjects()
 		//if the line trice hits the surface, spawn actor
 		if (bHit)
 		{
-			DrawDebugLine(GetWorld(), Start, HitResult.Location, FColor::Green, true, -1.0f, 0, 5.0f);
+			//DrawDebugLine(GetWorld(), Start, HitResult.Location, FColor::Green, true, -1.0f, 0, 5.0f);
 			//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Hit landscape...")));
 			UE_LOG(LogTemp, Warning, TEXT("Linetrace hit"));
 
@@ -82,6 +82,7 @@ void ASPickupSpawner::SpawnPickupObjects()
 			//setup spawn parameters
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
+			SpawnParams.SpawnCollisionHandlingOverride;
 
 			//spawn actor 
 			ActorInstance = World->SpawnActor<AActor>(ActorToSpawn, SpawnLocation, FRotator::ZeroRotator, SpawnParams);

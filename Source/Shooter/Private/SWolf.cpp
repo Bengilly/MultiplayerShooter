@@ -7,6 +7,7 @@
 #include "Net/UnrealNetwork.h"
 #include "AIController.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
+#include "Components/AudioComponent.h"
 
 ASWolf::ASWolf()
 {
@@ -23,19 +24,23 @@ ASWolf::ASWolf()
 	RunSpeed = 350.0f;
 
 	bIsChasing = false;
+	bHasGrowled = false;
 
 	bIsWalking = false;
 	bIsRunning = false;
 	bIsBiting = false;
 	bIsDead = false;
 
-
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned
 void ASWolf::BeginPlay()
 {
 	Super::BeginPlay();
+
+
+
 	
 	//get the player character reference
 	PlayerCharacter = Cast<ASCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
@@ -48,18 +53,22 @@ void ASWolf::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//handle patrol or chasing the player
-	if (bIsChasing)
+	if (GetLocalRole() == ROLE_Authority)
 	{
-		ChasePlayer();
+		//handle patrol or chasing the player
+		if (bIsChasing)
+		{
+			ChasePlayer();
+		}
+		else
+		{
+			Patrol(DeltaTime);
+		}
 	}
-	else
-	{
-		Patrol(DeltaTime);
-	}
+
 }
 
-//called the AI has not sensed a player to chase
+//called when the AI has not sensed a player to chase
 void ASWolf::Patrol(float DeltaTime)
 {
 	bIsRunning = false;
@@ -116,7 +125,15 @@ void ASWolf::OnDeath()
 			BTComp->StopTree(EBTStopMode::Safe); //stops current BT logic
 		}
 
-		AIController->StopMovement(); //stop wolf movement
+		//stop wolf movement
+		AIController->StopMovement(); 
+	}
+
+	//stop any audio currently being played from the wolf
+	if (WolfAudioComponent && WolfAudioComponent->IsPlaying())
+	{
+		//UE_LOG(LogTemp, Log, TEXT("Stopping wolf sound"));
+		WolfAudioComponent->Stop();
 	}
 
 	SetLifeSpan(10.0f);
@@ -131,4 +148,5 @@ void ASWolf::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePr
 	DOREPLIFETIME(ASWolf, bIsBiting);
 	DOREPLIFETIME(ASWolf, bIsDead);
 	DOREPLIFETIME(ASWolf, bIsChasing);
+	DOREPLIFETIME(ASWolf, bHasGrowled);
 }
