@@ -1,9 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+#include "SGameModePostGameLobby.h"
 #include "SGameState.h"
 #include "SPlayerState.h"
 #include "SPlayerControllerLobby.h"
-#include "SGameModePostGameLobby.h"
-
 
 ASGameModePostGameLobby::ASGameModePostGameLobby()
 {

@@ -51,6 +51,8 @@ class SHOOTER_API USGameInstance : public UGameInstance
 
 public:
 
+	//  ------------ Variables ------------  //
+
 	UPROPERTY(BlueprintReadWrite)
 	int MaxPlayers;
 
@@ -69,6 +71,11 @@ public:
 	void DestroySession();
 
 
+	//  ------------ Functions ------------  //
+
+	UFUNCTION(BlueprintCallable, Category = "GameState")
+	float GetMatchTimer() const;
+
 protected:
 
 	//  ------------ Variables ------------  //
@@ -85,6 +92,9 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsLanEnabled;
+
+	UPROPERTY(BlueprintReadOnly, Category = "GameInstance")
+	float MatchTimer;
 
 	//  ------------ Functions ------------  //
 
@@ -113,5 +123,10 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void CheckForSavedProfile();
 
+	UFUNCTION(BlueprintCallable, Category = "GameState")
+	void SetMatchTimer(float Time);
+
 	//  ------------ UI ------------  //
+
+
 };

@@ -26,7 +26,7 @@ public:
 	//  ------------ Variables ------------  //
 
 	//duration of the warmup in seconds
-	float WarmupDuration;
+	float StartTimer;
 	int MaxConnectedPlayers;
 
 	UPROPERTY(BlueprintReadOnly)

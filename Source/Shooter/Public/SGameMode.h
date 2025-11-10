@@ -100,45 +100,4 @@ protected:
 	UFUNCTION()
 	void OnPlayerKilled(AActor* EnemyKilled, AActor* DamagingActor, AController* DamagingActorController);
 
-	//  ------------ Variables ------------  //
-
-	//FTimerHandle TimerHandle_EnemySpawner;
-	//FTimerHandle TimerHandle_NextWaveStart;;
-	//int32 EnemiesToSpawn;
-	//int32 WaveCount;
-
-	//UPROPERTY(EditDefaultsOnly, Category = "GameMode")
-	//float TimeBetweenEnemyWaves;
-
-	//  ------------ Functions ------------  //
-
-	//void SetEnemyWaveState(EEnemyWaveState NewState);
-
-	////implemented in blueprints to spawn enemy
-	//UFUNCTION(BlueprintImplementableEvent, Category = "GameMode")
-	//void SpawnEnemy();
-
-	////calls blueprint to spawn enemies and hardcodes when enemy wave ends
-	//void SpawnEnemyTimerElapsed();
-
-	////start spawning enemies
-	//void SpawnEnemyWave();
-
-	////stop spawning enemies
-	//void EndEnemyWave();
-
-	////timer for next enemy wave
-	//void StartTimerForNextWave();
-
-	//respawn dead players
-	//void RespawnDeadPlayers();
-
-	////handle when to start next wave
-	//void QueryWaveState();
-
-
-	//void ScanForAlivePlayers();
-
-	//void GameOver();
-
 };

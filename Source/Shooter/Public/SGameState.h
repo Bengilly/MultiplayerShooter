@@ -48,7 +48,7 @@ public:
 	void WaveStateUpdated(EGameState NewState, EGameState PreviousState);
 
 	UFUNCTION(Category = "GameState")
-	void UpdateWarmupTimerToPlayers(float Time);
+	void UpdateStartTimerToPlayers(float Time);
 
 	UFUNCTION(Category = "GameState")
 	void UpdateFreezeTimerToPlayers(float Time);
@@ -71,7 +71,7 @@ protected:
 	float FreezeTimer;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
-	float WarmupTimer;
+	float StartTimer;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "GameState")
 	float RespawnTimer;

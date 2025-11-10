@@ -23,6 +23,27 @@ void USGameInstance::Init()
 
 	if (IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get())
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Subsystem: %s"), *IOnlineSubsystem::Get()->GetSubsystemName().ToString()));
+
+		IOnlineIdentityPtr Identity = OnlineSubsystem->GetIdentityInterface();
+		if (Identity.IsValid())
+		{
+			TSharedPtr<const FUniqueNetId> UserId = Identity->GetUniquePlayerId(0); // Local player index
+			if (UserId.IsValid())
+			{
+				FString IdString = UserId->ToString();
+
+				//UE_LOG(LogTemp, Warning, TEXT("Steam UniqueNetId: %s"), *IdString);
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Steam UniqueNetId: %s"), *IdString));
+			}
+			else
+			{
+				//UE_LOG(LogTemp, Error, TEXT("Failed to get UniqueNetId!"));
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Failed to get UniqueNetId!"));
+
+			}
+		}
+
 		SessionInterface = OnlineSubsystem->GetSessionInterface();
 		if (SessionInterface.IsValid())
 		{
@@ -39,8 +60,6 @@ void USGameInstance::CreateMultiplayerSession(FName SessionName)
 {
 	UE_LOG(LogTemp, Log, TEXT("(Session) Creating multiplayer server..."));
 
-
-
 	FOnlineSessionSettings SessionSettings;
 	SessionSettings.bAllowJoinInProgress = true;
 	SessionSettings.bIsDedicated = false;		
@@ -49,18 +68,19 @@ void USGameInstance::CreateMultiplayerSession(FName SessionName)
 	SessionSettings.bShouldAdvertise = true;
 	SessionSettings.bUsesPresence = true;
 	SessionSettings.NumPublicConnections = MaxPlayers;		//pull from UI
+	SessionSettings.bUseLobbiesIfAvailable = true;
 
 	SessionSettings.Set(FName("SESSION_NAME_KEY"), SessionName.ToString(), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
-	//SessionInterface->CreateSession(0, SessionName, SessionSettings);
+	SessionInterface->CreateSession(0, SessionName, SessionSettings);
 
-	bool bCreateSessionResult = SessionInterface->CreateSession(0, SessionName, SessionSettings);
+	//bool bCreateSessionResult = SessionInterface->CreateSession(0, SessionName, SessionSettings);
 	//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Session) CreateSession returned: %d"), bCreateSessionResult));
 
-	if (!bCreateSessionResult)
-	{
-		//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Session) CreateSession() failed to start")));
-	}
+	//if (!bCreateSessionResult)
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Session) CreateSession() failed to start")));
+	//}
 }
 
 //perform server travel to load level on session creation
@@ -91,7 +111,8 @@ void USGameInstance::FindMultiplayerSession()
 
 	OnlineSessionSearch = MakeShareable(new FOnlineSessionSearch());
 	OnlineSessionSearch->bIsLanQuery = false;	//switch to true for local testing
-	OnlineSessionSearch->MaxSearchResults = 10000;
+	OnlineSessionSearch->MaxSearchResults = 100;
+	OnlineSessionSearch->QuerySettings.Set(SEARCH_LOBBIES, true, EOnlineComparisonOp::Equals);
 	OnlineSessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 
 	SessionInterface->FindSessions(0, OnlineSessionSearch.ToSharedRef());
@@ -254,4 +275,14 @@ void USGameInstance::CheckForSavedProfile()
 		//GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("(Instance) Save Player Profile")));
 		SavePlayerProfile();
 	}
+}
+
+void USGameInstance::SetMatchTimer(float Time)
+{
+	MatchTimer = Time;
+}
+
+float USGameInstance::GetMatchTimer() const
+{
+	return MatchTimer;
 }

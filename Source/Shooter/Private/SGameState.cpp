@@ -9,9 +9,9 @@ void ASGameState::UpdateRespawnTimerToPlayers(float Time)
 	RespawnTimer = Time;
 }
 
-void ASGameState::UpdateWarmupTimerToPlayers(float Time)
+void ASGameState::UpdateStartTimerToPlayers(float Time)
 {
-	WarmupTimer = Time;
+	StartTimer = Time;
 }
 
 void ASGameState::UpdateFreezeTimerToPlayers(float Time)
@@ -48,7 +48,6 @@ void ASGameState::SetState(EGameState NewState)
 	}
 }
 
-
 void ASGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -57,7 +56,7 @@ void ASGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ASGameState, GameState);
 	DOREPLIFETIME(ASGameState, FreezeTimer)
 	DOREPLIFETIME(ASGameState, MatchTimer)
-	DOREPLIFETIME(ASGameState, WarmupTimer);
+	DOREPLIFETIME(ASGameState, StartTimer);
 	DOREPLIFETIME(ASGameState, RespawnTimer);
 	DOREPLIFETIME(ASGameState, MaxPlayerCount);
 }

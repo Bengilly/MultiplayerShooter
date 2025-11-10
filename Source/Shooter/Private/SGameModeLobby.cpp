@@ -13,7 +13,7 @@ ASGameModeLobby::ASGameModeLobby()
 {
 	GameStateClass = ASGameState::StaticClass();
 
-	WarmupDuration = 5.0f;
+	StartTimer = 10.0f;
 }
 
 void ASGameModeLobby::BeginPlay()
@@ -45,14 +45,14 @@ void ASGameModeLobby::StartWarmup()
 
 void ASGameModeLobby::WarmupTimerInterval()
 {
-	WarmupDuration -= 1.0f;
+	StartTimer -= 1.0f;
 
-	UE_LOG(LogTemp, Log, TEXT("Remaining warmup time: %f"), WarmupDuration);
+	UE_LOG(LogTemp, Log, TEXT("Remaining warmup time: %f"), StartTimer);
 
 	ASGameState* GS = GetGameState<ASGameState>();
-	GS->UpdateWarmupTimerToPlayers(WarmupDuration);
+	GS->UpdateStartTimerToPlayers(StartTimer);
 
-	if (WarmupDuration <= 0.0f)
+	if (StartTimer <= 0.0f)
 	{
 		//gameover
 		UE_LOG(LogTemp, Log, TEXT("Warmup has ended, game on!"));
