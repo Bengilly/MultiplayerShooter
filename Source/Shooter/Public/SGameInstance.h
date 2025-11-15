@@ -67,7 +67,7 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Session Results")
 	TArray<FSSessionSearchResults> SessionSearchResultsArray;
-
+ 
 	void DestroySession();
 
 

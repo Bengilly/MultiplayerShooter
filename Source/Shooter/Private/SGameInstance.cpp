@@ -14,6 +14,7 @@
 USGameInstance::USGameInstance()
 {
 	MaxPlayers = 2;
+	MatchTimer = 60.0f;
 	PlayerProfileSlot = "PlayerProfileSlot";
 }
 
