@@ -11,23 +11,33 @@ ASGameModePostGameLobby::ASGameModePostGameLobby()
 	//PlayerControllerClass = ASPlayerControllerLobby::StaticClass();
 }
 
-//void ASGameModePostGameLobby::BeginPlay()
-//{
-//	Super::BeginPlay();
-//
-//
-//}
-
-void ASGameModePostGameLobby::PostLogin(APlayerController* NewPlayerController)
+void ASGameModePostGameLobby::BeginPlay()
 {
-	Super::PostLogin(NewPlayerController);
+	Super::BeginPlay();
 
-	ASPlayerControllerLobby* LobbyPC = Cast<ASPlayerControllerLobby>(NewPlayerController);
-	if (LobbyPC)
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
-		LobbyPC->ClientCreatePostgameLobbyMenu();
+		if (ASPlayerControllerLobby* LobbyPC = Cast<ASPlayerControllerLobby>(*It))
+		{
+			LobbyPC->ClientCreatePostgameLobbyMenu();
+		}
 	}
 }
+
+//void ASGameModePostGameLobby::BeginPlay()
+//{
+//}
+
+//void ASGameModePostGameLobby::PostLogin(APlayerController* NewPlayerController)
+//{
+//	Super::PostLogin(NewPlayerController);
+//
+//	ASPlayerControllerLobby* LobbyPC = Cast<ASPlayerControllerLobby>(NewPlayerController);
+//	if (LobbyPC)
+//	{
+//		LobbyPC->ClientCreatePostgameLobbyMenu();
+//	}
+//}
 
 void ASGameModePostGameLobby::Logout(AController* PlayerController)
 {

@@ -21,7 +21,8 @@ protected:
 
 	//void BeginPlay() override;
 
-	virtual void PostLogin(APlayerController* NewPlayerController) override;
+	virtual void BeginPlay() override;
+	//virtual void PostLogin(APlayerController* NewPlayerController) override;
 	virtual void Logout(AController* PlayerController) override;
 
 };

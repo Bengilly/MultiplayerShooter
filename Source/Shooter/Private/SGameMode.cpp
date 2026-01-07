@@ -31,6 +31,8 @@ ASGameMode::ASGameMode()
 	//MatchDuration = 120.0f; //- moved to SGameState (set via lobby dropdown menu)
 	FreezeDuration = 10.0f;
 	RespawnTimer = 10.0f;
+
+	bUseSeamlessTravel = true;
 }
 
 void ASGameMode::BeginPlay()
@@ -296,7 +298,7 @@ void ASGameMode::ServerTravelToMap(const FString& MapName)
 	if (World)
 	{
 		FString URL = FString::Printf(TEXT("/Game/Maps/%s?listen"), *MapName);
-		World->ServerTravel(URL, true, false);
+		World->ServerTravel(URL, true);
 	}
 }
 
