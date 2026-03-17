@@ -6,6 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "SGameModePostGameLobby.generated.h"
 
+class ASPlayerControllerLobby;
+
 /**
  * 
  */
@@ -14,15 +16,18 @@ class SHOOTER_API ASGameModePostGameLobby : public AGameModeBase
 {
 	GENERATED_BODY()
 	
-	ASGameModePostGameLobby();
+
+public:
 
 
 protected:
 
-	//void BeginPlay() override;
+	//  ------------ Functions ------------  //
 
-	virtual void BeginPlay() override;
+	ASGameModePostGameLobby();
+
+	//virtual void BeginPlay() override;
 	//virtual void PostLogin(APlayerController* NewPlayerController) override;
-	virtual void Logout(AController* PlayerController) override;
+	//virtual void Logout(AController* PlayerController) override;
 
 };

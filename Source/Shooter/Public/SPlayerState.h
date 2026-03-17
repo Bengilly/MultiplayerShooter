@@ -19,20 +19,25 @@ public:
 
 	ASPlayerState();
 
+	virtual void CopyProperties(APlayerState* PlayerState) override;
+
 	UFUNCTION(BlueprintCallable, Category = "PlayerState")
-	void UpdateScore(float ScoreToAdd);
+	void SetPlayerScore(float ScoreToAdd);
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerState")
+	int GetPlayerScore() const;
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerState")
 	void SetTotalPlayerKills();
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerState")
-	float GetTotalPlayerKills() const;
+	int GetTotalPlayerKills() const;
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerState")
 	void SetTotalPlayerDeaths();
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerState")
-	float GetTotalPlayerDeaths() const;
+	int GetTotalPlayerDeaths() const;
 
 	UFUNCTION(BlueprintCallable, Category = "PlayerState")
 	void SetCustomPlayerName(FString Name);
@@ -43,10 +48,13 @@ public:
 protected:
 
 	UPROPERTY(Replicated)
-	float Deaths;
+	int PlayerScore;
 
 	UPROPERTY(Replicated)
-	float Kills;
+	int Deaths;
+
+	UPROPERTY(Replicated)
+	int Kills;
 
 	UPROPERTY(Replicated)
 	FString PlayerName;

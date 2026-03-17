@@ -535,7 +535,7 @@ void ASCharacter::ServerAddPowerupChargeToPlayer_Implementation(EAbilityPickupTy
 
 void ASCharacter::PickupFlag(ASCharacter* PickupActor, ASFlag* Flag)
 {
-	if (GetLocalRole() == ROLE_Authority && PickupActor)
+	if (GetLocalRole() == ROLE_Authority && PickupActor && Flag)
 	{
 		FlagOnPlayer = Flag;
 		FlagOnPlayer->AttachToComponent(Cast<ASCharacter>(PickupActor)->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FlagAttachSocketName);

@@ -31,6 +31,7 @@ ASGameMode::ASGameMode()
 	//MatchDuration = 120.0f; //- moved to SGameState (set via lobby dropdown menu)
 	FreezeDuration = 10.0f;
 	RespawnTimer = 10.0f;
+	ScoreIncrement = 10;
 
 	bUseSeamlessTravel = true;
 }
@@ -133,6 +134,9 @@ void ASGameMode::MatchTimerInterval()
 
 	UE_LOG(LogTemp, Log, TEXT("Remaining match time: %f"), MatchDuration);
 
+	ASGameState* GS = GetGameState<ASGameState>();
+	GS->UpdateMatchTimerToPlayers(MatchDuration);
+
 	if (MatchDuration <= 0.0f)
 	{
 		//gameover
@@ -140,20 +144,19 @@ void ASGameMode::MatchTimerInterval()
 
 		GetWorldTimerManager().ClearTimer(TimerHandler_GameTimer);
 		GetWorldTimerManager().ClearTimer(TimerHandler_FlagTimer);
+		GetWorldTimerManager().ClearTimer(TimerHandler_RespawnTimer);
 
 		//disable player input
 		SetPlayerInput(false);
 
 		SetGameState(EGameState::GameOver);
+
 		ServerTravelToMap("Level_Lobby_PostGame");
 	}
-
-	ASGameState* GS = GetGameState<ASGameState>();
-	GS->UpdateMatchTimerToPlayers(MatchDuration);
 }
 
 //handle the spawning of player pawn on the server
-void ASGameMode::SpawnPlayer(ASPlayerController* PlayerController, bool IsRespawn)
+void ASGameMode::SpawnPlayer(ASPlayerController* PlayerController, bool bIsRespawn)
 {
 	if (!PlayerController)
 	{
@@ -173,7 +176,7 @@ void ASGameMode::SpawnPlayer(ASPlayerController* PlayerController, bool IsRespaw
 	{
 		PlayerController->Possess(NewPlayerPawn);
 
-		if (IsRespawn)
+		if (bIsRespawn)
 		{
 			PlayerController->ClientEnablePlayerInput();
 		}
@@ -262,16 +265,18 @@ void ASGameMode::RespawnTimerInterval()
 
 		RespawnTimer = 10.0;
 
-		//set and restart respawn timer, if match tim
-		if (MatchDuration > RespawnTimer)
+		//check if match timer is still active before starting respawn timer again (e.g. if match timer has ended, don't start respawn timer)
+		if (RespawnTimer < MatchDuration)
 		{
 			StartRespawnTimer();
 		}
-
 	}
 
 	ASGameState* GS = GetGameState<ASGameState>();
-	GS->UpdateRespawnTimerToPlayers(RespawnTimer);
+	if (GS)
+	{
+		GS->UpdateRespawnTimerToPlayers(RespawnTimer);
+	}
 }
 
 void ASGameMode::RespawnAllDeadPlayers()
@@ -293,7 +298,7 @@ void ASGameMode::RespawnAllDeadPlayers()
 //load new level on the server
 void ASGameMode::ServerTravelToMap(const FString& MapName)
 {
-	// perform server travel to new level
+	// perform server travel to load new level
 	UWorld* World = GetWorld();
 	if (World)
 	{
@@ -325,7 +330,7 @@ void ASGameMode::FlagTimerInterval(AActor* PickupActor)
 	if (PlayerPawn)
 	{
 		ASPlayerState* PS = Cast<ASPlayerState>(PlayerPawn->GetPlayerState());
-		PS->UpdateScore(10);
+		PS->SetPlayerScore(ScoreIncrement);
 	}
 }
 

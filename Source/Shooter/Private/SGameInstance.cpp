@@ -65,7 +65,7 @@ void USGameInstance::CreateMultiplayerSession(FName SessionName)
 	SessionSettings.bAllowJoinInProgress = true;
 	SessionSettings.bIsDedicated = false;		
 	//SessionSettings.bIsLANMatch = (IOnlineSubsystem::Get()->GetSubsystemName() != "NULL") ? false : true;		//set to false for local testing
-	SessionSettings.bIsLANMatch = false; //using steam
+	SessionSettings.bIsLANMatch = true; // false when using steam, true for local testing
 	SessionSettings.bShouldAdvertise = true;
 	SessionSettings.bUsesPresence = true;
 	SessionSettings.NumPublicConnections = MaxPlayers;		//pull from UI

@@ -14,6 +14,8 @@ ASGameModeLobby::ASGameModeLobby()
 	GameStateClass = ASGameState::StaticClass();
 
 	StartTimer = 10.0f;
+
+	bUseSeamlessTravel = true;
 }
 
 void ASGameModeLobby::BeginPlay()
@@ -72,15 +74,12 @@ void ASGameModeLobby::WarmupTimerInterval()
 //load new level on the server
 void ASGameModeLobby::ServerTravelToMap(const FString& MapName)
 {
-	// future work - notify clients before travel
-	// future work - handle game state rep here
-
 	// perform server travel to load new level
 	UWorld* World = GetWorld();
 	if (World)
 	{
 		FString URL = FString::Printf(TEXT("/Game/Maps/%s?listen"), *MapName);
-		World->ServerTravel(URL, true, false);
+		World->ServerTravel(URL, true);
 	}
 }
 

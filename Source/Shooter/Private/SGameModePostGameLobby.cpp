@@ -6,40 +6,31 @@
 
 ASGameModePostGameLobby::ASGameModePostGameLobby()
 {
-	//GameStateClass = ASGameState::StaticClass();
-	//PlayerStateClass = ASPlayerState::StaticClass();
-	//PlayerControllerClass = ASPlayerControllerLobby::StaticClass();
-}
 
-void ASGameModePostGameLobby::BeginPlay()
-{
-	Super::BeginPlay();
-
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-	{
-		if (ASPlayerControllerLobby* LobbyPC = Cast<ASPlayerControllerLobby>(*It))
-		{
-			LobbyPC->ClientCreatePostgameLobbyMenu();
-		}
-	}
 }
 
 //void ASGameModePostGameLobby::BeginPlay()
 //{
+//	Super::BeginPlay();
+//
+//	GEngine->AddOnScreenDebugMessage(-1, 10.0, FColor::Green, FString::Printf(TEXT("Player connected to postgame lobby")));
+//
+//	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+//	{
+//		if (ASPlayerControllerLobby* LobbyPC = Cast<ASPlayerControllerLobby>(*It))
+//		{
+//
+//			LobbyPC->ClientCreatePostgameLobbyMenu();
+//		}
+//	}
 //}
 
 //void ASGameModePostGameLobby::PostLogin(APlayerController* NewPlayerController)
 //{
-//	Super::PostLogin(NewPlayerController);
 //
-//	ASPlayerControllerLobby* LobbyPC = Cast<ASPlayerControllerLobby>(NewPlayerController);
-//	if (LobbyPC)
-//	{
-//		LobbyPC->ClientCreatePostgameLobbyMenu();
-//	}
 //}
-
-void ASGameModePostGameLobby::Logout(AController* PlayerController)
-{
-
-}
+//
+//void ASGameModePostGameLobby::Logout(AController* PlayerController)
+//{
+//
+//}

@@ -7,15 +7,39 @@
 
 ASPlayerState::ASPlayerState()
 {
+	Kills = 0;
 	Deaths = 0;
-	//Score = 0;
+	PlayerScore = 0;
 }
 
-void ASPlayerState::UpdateScore(float ScoreToAdd)
+//called when server travels to new map, copies player state info to new player state object created for new level
+void ASPlayerState::CopyProperties(APlayerState* PlayerState)
 {
-	Score = GetScore();
-	SetScore(Score += ScoreToAdd);
+	Super::CopyProperties(PlayerState);
+
+	ASPlayerState* NewPS = Cast<ASPlayerState>(PlayerState);
+
+	if (NewPS)
+	{
+		NewPS->PlayerScore = GetPlayerScore();
+		NewPS->Kills = GetTotalPlayerKills();
+		NewPS->Deaths = GetTotalPlayerDeaths();
+	}
+
+}
+
+//create separate score variable to copy over to postgame scoreboard as it wasn't working with engine score variable
+void ASPlayerState::SetPlayerScore(float ScoreToAdd)
+{
+	PlayerScore = GetScore();
+	SetScore(PlayerScore + ScoreToAdd);
+
 	UE_LOG(LogTemp, Log, TEXT("Player Score: %f"), Score);
+}
+
+int ASPlayerState::GetPlayerScore() const
+{
+	return PlayerScore;
 }
 
 void ASPlayerState::SetTotalPlayerKills()
@@ -23,7 +47,7 @@ void ASPlayerState::SetTotalPlayerKills()
 	Kills += 1;
 }
 
-float ASPlayerState::GetTotalPlayerKills() const
+int ASPlayerState::GetTotalPlayerKills() const
 {
 	return Kills;
 }
@@ -33,7 +57,7 @@ void ASPlayerState::SetTotalPlayerDeaths()
 	Deaths += 1;
 }
 
-float ASPlayerState::GetTotalPlayerDeaths() const
+int ASPlayerState::GetTotalPlayerDeaths() const
 {
 	return Deaths;
 }
@@ -58,4 +82,5 @@ void ASPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(ASPlayerState, PlayerName);
 	DOREPLIFETIME(ASPlayerState, Deaths);
 	DOREPLIFETIME(ASPlayerState, Kills);
+	DOREPLIFETIME(ASPlayerState, PlayerScore);
 }

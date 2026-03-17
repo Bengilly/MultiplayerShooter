@@ -29,7 +29,7 @@ public:
 
 	ASGameMode();
 
-	void SpawnPlayer(ASPlayerController* PlayerController, bool IsRespawn);
+	void SpawnPlayer(ASPlayerController* PlayerController, bool bIsRespawn);
 
 	//UPROPERTY(BlueprintAssignable, Category = "GameMode")
 	FOnActorKilled OnActorKilled;
@@ -63,6 +63,8 @@ protected:
 
 	UPROPERTY(Replicated, BlueprintReadOnly, EditDefaultsOnly)
 	float TimeWithFlag;
+
+	int	ScoreIncrement;
 
 	//  ------------ Functions ------------  //
 
